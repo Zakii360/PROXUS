@@ -328,6 +328,37 @@
     .loading.visible{display:flex}
     .loading-ring{width:26px;height:26px;border:2px solid rgba(255,255,255,.12);border-top-color:#fff;border-radius:50%}
 
+    .result-types{margin-left:auto;display:flex;gap:2px;padding:2px;border:1px solid var(--border);border-radius:5px;background:rgba(255,255,255,.02)}
+    .result-type{height:25px;padding:0 8px;border-radius:4px;color:var(--muted);font-size:9px}
+    .result-type:hover{background:var(--surface-2);color:var(--text)}
+    .result-type.active{background:var(--surface-3);color:var(--text)}
+    .shopping-meta{margin-bottom:5px;color:#d5d5da;font-size:10px}
+    .result-age{margin-top:6px;color:var(--muted-2);font-size:9px}
+    .image-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+    .image-result{display:block;overflow:hidden;border:1px solid var(--border);border-radius:6px;background:rgba(12,12,15,.68)}
+    .image-result:hover{border-color:var(--border-strong);background:var(--surface-2)}
+    .image-result img{display:block;width:100%;aspect-ratio:1.28;object-fit:cover;background:#101014}
+    .image-result-copy{padding:8px}
+    .image-result-copy .result-title{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;font-size:10px}
+    .settings-backdrop{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.28);backdrop-filter:blur(3px);display:flex;justify-content:flex-end}
+    .settings-panel{width:min(340px,92vw);height:100%;padding:14px;background:rgba(14,14,18,.94);border-left:1px solid var(--border-2);box-shadow:-18px 0 50px rgba(0,0,0,.35);overflow:auto}
+    .settings-header{height:36px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .settings-title{font-size:13px;font-weight:650}
+    .settings-section{padding:12px 0;border-top:1px solid var(--border)}
+    .settings-label{margin-bottom:8px;color:var(--muted-2);font-size:9px;text-transform:uppercase;letter-spacing:.1em}
+    .settings-options{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
+    .settings-option{height:32px;border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:10px;background:rgba(255,255,255,.02)}
+    .settings-option.active{background:var(--surface-3);color:var(--text);border-color:var(--border-2)}
+    .switch-row{width:100%;height:34px;padding:0 9px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:5px;background:rgba(255,255,255,.02);font-size:10px;color:var(--text)}
+    .switch{width:28px;height:16px;border-radius:999px;background:#2a2a30;padding:2px;transition:background .18s ease}
+    .switch span{display:block;width:12px;height:12px;border-radius:50%;background:#777780;transition:transform .18s var(--ease),background .18s ease}
+    .switch.on{background:#eee}
+    .switch.on span{transform:translateX(12px);background:#111}
+    .bookmark-list{display:flex;flex-direction:column;gap:3px}
+    .bookmark-list-item{min-height:32px;padding:0 9px;display:flex;align-items:center;justify-content:space-between;border-radius:5px;color:var(--muted);font-size:10px;text-align:left}
+    .bookmark-list-item:hover{background:var(--surface-2);color:var(--text)}
+    .settings-muted,.settings-note{color:var(--muted-2);font-size:9px;line-height:1.5}
+
     .toast{position:fixed;right:14px;bottom:14px;z-index:100;max-width:340px;padding:11px 13px;border:1px solid var(--border-strong);background:rgba(20,20,24,.94);backdrop-filter:blur(18px);border-radius:6px;color:var(--muted);font-size:10px;box-shadow:0 16px 50px rgba(0,0,0,.45)}
     .toast strong{display:block;color:var(--text);margin-bottom:3px}
 
@@ -355,7 +386,7 @@
 
   const {createElement: h} = React;
 
-  const SEARCH_API = "https://wiswfpfsjiowtrdyqpxy.supabase.co/functions/v1/search";
+  const SEARCH_API = "https://api.360-search.com/";
   const SUPABASE_PROXY = "https://wiswfpfsjiowtrdyqpxy.supabase.co/functions/v1/web-viewer";
 
   const iconPaths = {
@@ -370,7 +401,8 @@
     panel: h("g", null, h("rect", {x:3,y:4,width:18,height:16,rx:2}), h("line", {x1:9,y1:4,x2:9,y2:20})),
     info: h("g", null, h("circle", {cx:12,cy:12,r:9}), h("path", {d:"M12 10v6"}), h("path", {d:"M12 7h.01"})),
     shield: h("g", null, h("path", {d:"M12 3 4 6v5c0 5 3 8 8 10 5-2 8-5 8-10V6z"})),
-    external: h("g", null, h("path", {d:"M14 4h6v6"}), h("path", {d:"m20 4-9 9"}), h("path", {d:"M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"}))
+    external: h("g", null, h("path", {d:"M14 4h6v6"}), h("path", {d:"m20 4-9 9"}), h("path", {d:"M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"})),
+    settings: h("g", null, h("circle", {cx:12,cy:12,r:3}), h("path", {d:"M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1-2.1 2.1-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5v.1h-3v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1-2.1-2.1.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H5v-3h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1 2.1-2.1.1.1a1.7 1.7 0 0 0 1.8.3 1.7 1.7 0 0 0 1-1.5V5h3v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1 2.1 2.1-.1.1a1.7 1.7 0 0 0-.3 1.8 1.7 1.7 0 0 0 1.5 1h.1v3h-.1a1.7 1.7 0 0 0-1.4.8Z"}))
   };
 
   function Icon({name,size=16,className=""}){
@@ -473,6 +505,25 @@
     return SUPABASE_PROXY+"?url="+encodeURIComponent(url);
   }
 
+  function resolveNavigation(rawUrl, baseUrl=currentUrl){
+    const value=String(rawUrl||"").trim();
+    if(!value)return "";
+
+    try{
+      const parsed=new URL(value,baseUrl||window.location.href);
+
+      if(parsed.origin===new URL(SUPABASE_PROXY).origin &&
+         parsed.pathname===new URL(SUPABASE_PROXY).pathname){
+        const embedded=parsed.searchParams.get("url");
+        if(embedded)return embedded;
+      }
+
+      return parsed.href;
+    }catch{
+      return value;
+    }
+  }
+
   function App(){
     const [tabs,setTabs]=useStorage("proxus-tabs",[{id:"home",title:"New Tab",url:"",history:[],historyIndex:-1}]);
     const [activeId,setActiveId]=useStorage("proxus-active","home");
@@ -487,6 +538,11 @@
     const [currentUrl,setCurrentUrl]=useState("");
     const [rawHtml,setRawHtml]=useState("");
     const [sourceMode,setSourceMode]=useState(false);
+    const [frameHtml,setFrameHtml]=useState("");
+    const [searchType,setSearchType]=useState("web");
+    const [safeSearch,setSafeSearch]=useState(true);
+    const [dustEnabled,setDustEnabled]=useState(true);
+    const [settingsOpen,setSettingsOpen]=useState(false);
     const [suggestions,setSuggestions]=useState([]);
     const [suggestionIndex,setSuggestionIndex]=useState(-1);
     const [toast,setToast]=useState(null);
@@ -521,12 +577,16 @@
     };
 
     const fetchPage=async(url,method="get",pushHistory=true,targetTabId=activeId)=>{
+      const resolvedUrl=resolveNavigation(url,currentUrl);
+      if(!resolvedUrl)return;
+
       setLoading(true);
       try{
-        const response=await fetch(proxify(url),{method:method==="post"?"POST":"GET"});
+        const response=await fetch(proxify(resolvedUrl),{method:method==="post"?"POST":"GET"});
         if(!response.ok)throw new Error("Server responded with "+response.status);
-        const html=await response.text();
-        const finalUrl=response.headers.get("X-Final-Url")||url;
+        const sourceHtml=await response.text();
+        const finalUrl=resolveNavigation(response.headers.get("X-Final-Url")||resolvedUrl,resolvedUrl);
+        const html=sourceHtml;
         if(pushHistory){
           setTabs(prev=>prev.map(t=>{
             if(t.id!==targetTabId)return t;
@@ -543,7 +603,7 @@
         try{title=(new URL(finalUrl)).hostname}catch{}
         updateTab(finalUrl,title,targetTabId);
         setShowResults(false);
-        if(frameRef.current)frameRef.current.srcdoc=html;
+        setFrameHtml(html);
       }catch(err){
         showToast("Could not load page",err.message);
       }finally{
@@ -564,22 +624,25 @@
       search(raw);
     };
 
-    const search=async(q)=>{
-      const value=String(q||"").trim();
+    const search=async(q,type=searchType)=>{
+      const value=String(q||"").trim().slice(0,500);
       if(!value)return;
       setLoading(true);
       setShowResults(true);
       setQuery(value);
       setResults([]);
       try{
-        const response=await fetch(SEARCH_API,{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({q:value,tab:"web",page:1,safe:true})
+        const params=new URLSearchParams({
+          q:value,
+          type,
+          safe:safeSearch?"moderate":"off",
+          limit:"50",
+          page:"1"
         });
-        if(!response.ok)throw new Error("Search request failed");
+        const response=await fetch(SEARCH_API+"?"+params.toString(),{method:"GET"});
+        if(!response.ok)throw new Error("Search request failed ("+response.status+")");
         const data=await response.json();
-        setResults(Array.isArray(data.web)?data.web:[]);
+        setResults(Array.isArray(data.results)?data.results:[]);
       }catch(err){
         showToast("Search unavailable",err.message);
       }finally{
@@ -592,19 +655,22 @@
       clearTimeout(suggestTimer.current);
       suggestTimer.current=setTimeout(async()=>{
         try{
-          const response=await fetch(SEARCH_API,{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({q:query,tab:"web",page:1,safe:true})
+          const params=new URLSearchParams({
+            q:query.slice(0,500),
+            type:searchType,
+            safe:safeSearch?"moderate":"off",
+            limit:"5",
+            page:"1"
           });
+          const response=await fetch(SEARCH_API+"?"+params.toString(),{method:"GET"});
           if(!response.ok)return;
           const data=await response.json();
-          setSuggestions(Array.isArray(data.web)?data.web.slice(0,5):[]);
+          setSuggestions(Array.isArray(data.results)?data.results.slice(0,5):[]);
           setSuggestionIndex(-1);
         }catch{}
       },180);
       return()=>clearTimeout(suggestTimer.current);
-    },[query]);
+    },[query,searchType,safeSearch]);
 
     const createTab=()=>{
       const tab={id:(crypto.randomUUID ? crypto.randomUUID() : "px-"+Date.now().toString(36)+Math.random().toString(36).slice(2,8)),title:"New Tab",url:"",history:[],historyIndex:-1};
@@ -670,18 +736,19 @@
         if(frameRef.current && event.source !== frameRef.current.contentWindow)return;
         const data=event.data;
         if(!data||typeof data!=="object")return;
-        if(data.type==="360-navigate"&&data.url)fetchPage(data.url,data.method);
+        if(data.type==="360-navigate"&&data.url)fetchPage(resolveNavigation(data.url,currentUrl),data.method);
         if(data.type==="360-meta"&&data.url){
-          setUrl(data.url);
+          const metaUrl=resolveNavigation(data.url,currentUrl);
+          setUrl(metaUrl);
           setTabs(prev=>prev.map(t=>{
             if(t.id!==activeId)return t;
             const history=Array.isArray(t.history)?t.history:[];
             const index=Number.isInteger(t.historyIndex)?t.historyIndex:-1;
             const current=history[index];
-            if(current===data.url)return {...t,url:data.url};
+            if(current===metaUrl)return {...t,url:metaUrl};
             const nextHistory=history.slice(0,index+1);
-            nextHistory.push(data.url);
-            return {...t,url:data.url,history:nextHistory,historyIndex:nextHistory.length-1};
+            nextHistory.push(metaUrl);
+            return {...t,url:metaUrl,history:nextHistory,historyIndex:nextHistory.length-1};
           }));
         }
         if(data.type==="360-alert"&&typeof data.msg==="string")alert(data.msg);
@@ -691,6 +758,26 @@
       addEventListener("message",onMessage);
       return()=>removeEventListener("message",onMessage);
     },[activeId,activeTab?.title]);
+
+    useEffect(()=>{
+      const frame=frameRef.current;
+      if(!frame)return;
+
+      const onLoad=()=>{
+        try{
+          const href=frame.contentWindow?.location?.href || "";
+          if(href && href!=="about:srcdoc" && href!=="about:blank" && /^https?:\/\//i.test(href)){
+            const tab=currentTab();
+            if(tab && href!==currentUrl){
+              fetchPage(href,"get",true,tab.id);
+            }
+          }
+        }catch{}
+      };
+
+      frame.addEventListener("load",onLoad);
+      return()=>frame.removeEventListener("load",onLoad);
+    },[currentUrl,activeId]);
 
     useEffect(()=>{
       if(!tabs.length){
@@ -801,6 +888,14 @@
           },
             h(Icon,{name:"panel",size:15}),
             !collapsed && h("span",null,"Collapse")
+          ),
+          !collapsed && h(motion.button, {
+            className:"side-button",
+            whileHover:{x:2},
+            onClick:()=>setSettingsOpen(true)
+          },
+            h(Icon,{name:"settings",size:15}),
+            h("span",null,"Settings")
           ),
           !collapsed && h(motion.button, {
             className:"side-button",
@@ -936,6 +1031,49 @@
         )
       );
 
+    const resultNode=(item,i)=>{
+      if(searchType==="image"){
+        return h(motion.a,{
+          key:item.url||item.image||i,
+          className:"image-result",
+          href:item.url||item.image||"#",
+          target:"_blank",
+          rel:"noopener noreferrer",
+          initial:{opacity:0,y:8},
+          animate:{opacity:1,y:0},
+          transition:{delay:Math.min(i*.02,.16),type:"spring",stiffness:260,damping:28},
+          whileHover:{y:-2,scale:1.008}
+        },
+          item.image&&h("img",{src:item.image,alt:item.title||"",loading:"lazy"}),
+          h("div",{className:"image-result-copy"},
+            h("div",{className:"result-title"},item.title||item.url),
+            h("div",{className:"result-url"},item.width&&item.height?(item.width+" × "+item.height):item.url)
+          )
+        );
+      }
+
+      return h(motion.a,{
+        key:item.url||i,
+        className:"result",
+        href:"#",
+        onClick:e=>{e.preventDefault();navigate(item.url)},
+        initial:{opacity:0,y:10},
+        animate:{opacity:1,y:0},
+        transition:{delay:Math.min(i*.025,.18),type:"spring",stiffness:260,damping:28},
+        whileHover:{y:-1}
+      },
+        h("div",{className:"result-url"},item.source||item.url),
+        h("div",{className:"result-title"},item.title||item.url),
+        searchType==="shopping" && h("div",{className:"shopping-meta"},
+          item.price||"",
+          item.rating!=null?" · "+item.rating+"/5":"",
+          item.reviews!=null?" · "+item.reviews+" reviews":""
+        ),
+        h("div",{className:"result-desc"},item.description||item.desc||""),
+        searchType==="news" && item.age && h("div",{className:"result-age"},item.age)
+      );
+    };
+
     const resultsNode =
       showResults && h(
         motion.section,
@@ -943,32 +1081,28 @@
           className:"results visible",
           initial:{opacity:0,y:8},
           animate:{opacity:1,y:0},
-          exit:{opacity:0,y:-6},
           transition:{type:"spring",stiffness:220,damping:24}
         },
         h("div",{className:"results-inner"},
           h("div",{className:"results-header"},
             h("span",{className:"results-query"},query),
-            h("span",{className:"results-meta"},results.length+" results · 360 Search")
-          ),
-          results.length
-            ? results.map((item,i)=>
-                h(motion.a, {
-                  key:item.url||i,
-                  className:"result",
-                  href:"#",
-                  onClick:e=>{e.preventDefault();navigate(item.url)},
-                  initial:{opacity:0,y:10},
-                  animate:{opacity:1,y:0},
-                  transition:{delay:Math.min(i*.025,.18),type:"spring",stiffness:260,damping:28},
-                  whileHover:{y:-1}
-                },
-                  h("div",{className:"result-url"},item.url),
-                  h("div",{className:"result-title"},item.title||item.url),
-                  h("div",{className:"result-desc"},item.desc||item.description||"")
-                )
+            h("span",{className:"results-meta"},results.length+" results"),
+            h("div",{className:"result-types"},
+              [["web","Web"],["news","News"],["shopping","Shopping"],["image","Images"]].map(([type,label])=>
+                h(motion.button,{
+                  key:type,
+                  className:"result-type"+(searchType===type?" active":""),
+                  onClick:()=>{setSearchType(type);search(query,type)},
+                  whileTap:{scale:.96}
+                },label)
               )
-            : h("div",{className:"results-empty"},loading?"Searching…":"No results found.")
+            )
+          ),
+          searchType==="image"
+            ? h("div",{className:"image-results"},results.map(resultNode))
+            : results.length
+              ? results.map(resultNode)
+              : h("div",{className:"results-empty"},loading?"Searching…":"No results found.")
         )
       );
 
@@ -984,17 +1118,64 @@
         h("iframe",{
           ref:frameRef,
           className:"frame",
-          sandbox:"allow-same-origin allow-scripts allow-forms allow-popups",
-          referrerPolicy:"no-referrer",
+          srcDoc:frameHtml,
+          sandbox:"allow-same-origin allow-scripts allow-forms allow-popups allow-modals",
           title:"PROXUS"
         }),
         sourceMode && h("pre",{className:"source",style:{display:"block"}},rawHtml)
       );
 
+    const settingsNode = settingsOpen && h(
+      motion.div,
+      {className:"settings-backdrop",initial:{opacity:0},animate:{opacity:1},exit:{opacity:0},onClick:()=>setSettingsOpen(false)},
+      h(motion.aside,{className:"settings-panel",initial:{x:28,opacity:0},animate:{x:0,opacity:1},exit:{x:20,opacity:0},transition:{type:"spring",stiffness:320,damping:30},onClick:e=>e.stopPropagation()},
+        h("div",{className:"settings-header"},
+          h("div",{className:"settings-title"},"Settings"),
+          h(motion.button,{className:"icon-button",onClick:()=>setSettingsOpen(false),whileTap:{scale:.9}},h(Icon,{name:"close",size:15}))
+        ),
+        h("div",{className:"settings-section"},
+          h("div",{className:"settings-label"},"Search type"),
+          h("div",{className:"settings-options"},
+            [["web","Web"],["news","News"],["shopping","Shopping"],["image","Images"]].map(([type,label])=>
+              h(motion.button,{key:type,className:"settings-option"+(searchType===type?" active":""),onClick:()=>setSearchType(type),whileTap:{scale:.97}},label)
+            )
+          )
+        ),
+        h("div",{className:"settings-section"},
+          h("div",{className:"settings-label"},"Safe search"),
+          h(motion.button,{className:"switch-row",onClick:()=>setSafeSearch(v=>!v),whileTap:{scale:.985}},
+            h("span",null,safeSearch?"Moderate":"Off"),
+            h("span",{className:"switch"+(safeSearch?" on":"")},h("span",null))
+          )
+        ),
+        h("div",{className:"settings-section"},
+          h("div",{className:"settings-label"},"Background"),
+          h(motion.button,{className:"switch-row",onClick:()=>setDustEnabled(v=>!v),whileTap:{scale:.985}},
+            h("span",null,"Falling dust"),
+            h("span",{className:"switch"+(dustEnabled?" on":"")},h("span",null))
+          )
+        ),
+        h("div",{className:"settings-section"},
+          h("div",{className:"settings-label"},"Bookmarks"),
+          bookmarks.length
+            ? h("div",{className:"bookmark-list"},bookmarks.map(bookmark=>
+                h(motion.button,{key:bookmark.url,className:"bookmark-list-item",onClick:()=>{setSettingsOpen(false);fetchPage(bookmark.url)}},
+                  h("span",null,bookmark.title||bookmark.url),
+                  h(Icon,{name:"external",size:12})
+                )
+              ))
+            : h("div",{className:"settings-muted"},"No saved bookmarks")
+        ),
+        h("div",{className:"settings-section settings-note"},
+          "PROXUS is not intended to bypass access restrictions."
+        )
+      )
+    );
+
     const appNode = h(
       "div",
       {className:"app"},
-      h(Dust),
+      dustEnabled && h(Dust),
       h("div",{className:"shell"},
         sidebarNode,
         h("main",{className:"main"},
@@ -1011,6 +1192,7 @@
 
     return h(React.Fragment,null,
       appNode,
+      settingsNode,
       toast && h(motion.div,{className:"toast",initial:{opacity:0,y:10,scale:.97},animate:{opacity:1,y:0,scale:1},exit:{opacity:0,y:6,scale:.98},transition:{type:"spring",stiffness:360,damping:28}},h("strong",null,toast.title),toast.message)
     );
   }
