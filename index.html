@@ -168,7 +168,7 @@
     }
     .new-tab:hover{background:var(--surface-2);color:var(--text)}
 
-    .tab-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px;min-height:0;overflow:auto;flex:1}
+    .tab-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px;min-height:0;overflow:auto;scroll-behavior:smooth;flex:1}
 
     .tab{
       position:relative;
@@ -268,7 +268,7 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      overflow:auto;
+      overflow:auto;scroll-behavior:smooth;
       background:radial-gradient(circle at 50% 42%,rgba(31,45,85,.12),transparent 36%);
     }
 
@@ -306,7 +306,7 @@
       font-size:9px;
     }
 
-    .results{position:absolute;inset:0;display:none;overflow:auto;padding:26px 28px 50px;background:#000}
+    .results{position:absolute;inset:0;display:none;overflow:auto;scroll-behavior:smooth;padding:26px 28px 50px;background:#000}
     .results.visible{display:block}
     .results-inner{width:min(820px,100%);margin:0 auto}
     .results-header{display:flex;gap:8px;align-items:center;margin-bottom:12px}
@@ -322,16 +322,18 @@
     .web-view{position:absolute;inset:0;display:none;background:#fff}
     .web-view.visible{display:block}
     .frame{display:block;width:100%;height:100%;border:0;background:#fff}
-    .source{position:absolute;inset:0;display:none;overflow:auto;margin:0;padding:18px;background:#0c0d11;color:#b9f5c8;font:12px/1.55 Consolas,Monaco,SFMono-Regular,monospace;white-space:pre-wrap}
+    .source{position:absolute;inset:0;display:none;overflow:auto;scroll-behavior:smooth;margin:0;padding:18px;background:#0c0d11;color:#b9f5c8;font:12px/1.55 Consolas,Monaco,SFMono-Regular,monospace;white-space:pre-wrap}
 
     .loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:10;background:rgba(0,0,0,.28);backdrop-filter:blur(5px)}
     .loading.visible{display:flex}
     .loading-ring{width:26px;height:26px;border:2px solid rgba(255,255,255,.12);border-top-color:#fff;border-radius:50%}
 
     .result-types{margin-left:auto;display:flex;gap:2px;padding:2px;border:1px solid var(--border);border-radius:5px;background:rgba(255,255,255,.02)}
-    .result-type{height:25px;padding:0 8px;border-radius:4px;color:var(--muted);font-size:9px}
-    .result-type:hover{background:var(--surface-2);color:var(--text)}
-    .result-type.active{background:var(--surface-3);color:var(--text)}
+    .result-type{position:relative;height:25px;padding:0 8px;border-radius:4px;color:var(--muted);font-size:9px;overflow:hidden}
+    .result-type:hover{color:var(--text)}
+    .result-type.active{color:var(--text)}
+    .result-type-highlight{position:absolute;inset:0;border-radius:4px;background:var(--surface-3);z-index:0}
+    .result-type-label{position:relative;z-index:1}
     .result-thumb{float:right;width:68px;height:50px;margin:0 0 7px 12px;border-radius:5px;object-fit:cover;background:#0c0c0f;border:1px solid var(--border)}
     .shopping-meta{margin-bottom:5px;color:#d5d5da;font-size:10px}
     .result-age{margin-top:6px;color:var(--muted-2);font-size:9px}
@@ -363,6 +365,19 @@
     .toast{position:fixed;right:14px;bottom:14px;z-index:100;max-width:340px;padding:11px 13px;border:1px solid var(--border-strong);background:rgba(20,20,24,.94);backdrop-filter:blur(18px);border-radius:6px;color:var(--muted);font-size:10px;box-shadow:0 16px 50px rgba(0,0,0,.45)}
     .toast strong{display:block;color:var(--text);margin-bottom:3px}
 
+    #idx-container{
+      position:fixed!important;
+      left:0!important;
+      top:0!important;
+      width:1px!important;
+      height:1px!important;
+      overflow:hidden!important;
+      opacity:0.001!important;
+      pointer-events:none!important;
+      z-index:-1!important;
+      transform:translateZ(0);
+    }
+
     @media(max-width:760px){
       .sidebar{position:absolute;left:0;top:0;bottom:0;transform:translateX(-100%);transition:transform .24s var(--ease);box-shadow:15px 0 50px rgba(0,0,0,.35)}
       .sidebar.mobile-open{transform:translateX(0)}
@@ -375,8 +390,10 @@
       *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
     }
   </style>
+  <script async src="https://cse.google.com/cse.js?cx=e003eb0834b6b4be8"></script>
 </head>
 <body>
+<div id="idx-container" aria-hidden="true"><div class="gcse-search" id="idx-mount"></div></div>
 <div id="root"></div>
 
 <script type="module">
@@ -581,10 +598,7 @@
           // Navigation links/forms stay normal so the viewer's injected
           // navigation bridge can handle them. Assets go through asset=1.
           if(selector==="script"){
-            // Let the full web-viewer path rewrite JS imports the same way the
-            // original viewer does, rather than turning module-relative imports
-            // into dead asset URLs.
-            node.setAttribute(attr,proxify(absolute));
+            node.setAttribute(attr,proxyAsset(absolute));
           }else if(
             (selector==="link" && /(?:stylesheet|preload|modulepreload|icon|manifest|apple-touch-icon)/i.test(node.getAttribute("rel")||"")) ||
             selector!=="link"
@@ -617,6 +631,42 @@
         node.setAttribute("style",rewriteCssUrls(node.getAttribute("style"),pageUrl));
       });
 
+      const bridge=doc.createElement("script");
+      bridge.textContent=`(()=>{
+        const __PROXUS_PAGE=${JSON.stringify(pageUrl)};
+        const __PROXUS_PROXY=${JSON.stringify(SUPABASE_PROXY)};
+        const __proxify=(input)=>{
+          try{
+            const u=new URL(String(input),__PROXUS_PAGE);
+            return __PROXUS_PROXY+"?asset=1&url="+encodeURIComponent(u.href);
+          }catch{return input}
+        };
+        const __fetch=window.fetch;
+        window.fetch=function(input,init){
+          try{
+            const raw=typeof input==='string'?input:input?.url;
+            const u=new URL(raw,__PROXUS_PAGE);
+            if(/^https?:$/i.test(u.protocol) && !/^(?:data:|blob:|javascript:|mailto:|tel:)/i.test(raw)){
+              const method=(init?.method || (typeof input!=='string' && input?.method) || 'GET').toUpperCase();
+              if(method==='GET' || method==='HEAD'){
+                if(typeof input==='string') input=__proxify(u.href);
+                else input=new Request(__proxify(u.href),input);
+              }
+            }
+          }catch{}
+          return __fetch.call(this,input,init);
+        };
+        const __open=XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open=function(method,url,...rest){
+          try{
+            const u=new URL(url,__PROXUS_PAGE);
+            if(/^https?:$/i.test(u.protocol) && String(method).toUpperCase()==='GET') url=__proxify(u.href);
+          }catch{}
+          return __open.call(this,method,url,...rest);
+        };
+      })();`;
+      doc.head ? doc.head.prepend(bridge) : doc.documentElement.prepend(bridge);
+
       return "<!doctype html>\n"+doc.documentElement.outerHTML;
     }catch{
       return html;
@@ -630,6 +680,192 @@
     if(!response.ok)throw new Error("Search request failed ("+response.status+")");
     const text=await response.text();
     try{return JSON.parse(text)}catch{throw new Error("Search returned invalid data")}
+  }
+
+  function getGcseInput(){
+    return document.querySelector('#idx-container input.gsc-input');
+  }
+
+  function getGcseButton(){
+    return document.querySelector('#idx-container .gsc-search-button-v2, #idx-container button.gsc-search-button');
+  }
+
+  function cleanHost(value){
+    try{return new URL(value).hostname.replace(/^www\\./i,'')}catch{return String(value||'')}
+  }
+
+  function scrapeGcseResults(){
+    const root=document.getElementById('idx-container');
+    if(!root)return [];
+    const nodes=root.querySelectorAll('.gsc-webResult.gsc-result, .gs-result');
+    const seen=new Set();
+    const out=[];
+
+    nodes.forEach(node=>{
+      const titleAnchor=node.querySelector('.gs-title a[data-ctorig], .gs-title a, a.gs-title');
+      if(!titleAnchor)return;
+
+      let href=titleAnchor.getAttribute('data-ctorig') || titleAnchor.href || '';
+      if(!href)return;
+
+      if(href.includes('google.com/url')){
+        try{href=new URL(href).searchParams.get('q') || href}catch{}
+      }
+
+      const key=href.replace(/\/$/,'').toLowerCase();
+      if(!key || seen.has(key))return;
+      seen.add(key);
+
+      const snippet=node.querySelector('.gs-snippet');
+      const thumb=node.querySelector('.gs-image img, .gsc-thumbnail img, img.gs-image');
+      const title=titleAnchor.textContent.trim();
+
+      out.push({
+        type:'web',
+        title,
+        url:href,
+        description:snippet ? snippet.textContent.trim() : '',
+        thumbnail:thumb ? (thumb.src || thumb.getAttribute('data-src') || '') : '',
+        source:cleanHost(href),
+        _gsc:true
+      });
+    });
+
+    return out;
+  }
+
+  function triggerGcse(q){
+    return new Promise(resolve=>{
+      const started=Date.now();
+      let stableTimer=0;
+      let safetyTimer=0;
+      let readyTimer=0;
+      let observer=null;
+      let settled=false;
+
+      const finish=results=>{
+        if(settled)return;
+        settled=true;
+        clearTimeout(stableTimer);
+        clearTimeout(safetyTimer);
+        clearTimeout(readyTimer);
+        observer?.disconnect();
+        resolve(results||[]);
+      };
+
+      const root=document.getElementById('idx-container');
+      if(!root){finish([]);return}
+
+      const scrape=()=>{
+        const results=scrapeGcseResults();
+        const noResults=!!root.querySelector('.gs-no-results-result, .gsc-no-results-result');
+        if(results.length || noResults || Date.now()-started>7800){
+          finish(results);
+          return true;
+        }
+        return false;
+      };
+
+      const setupObserver=()=>{
+        if(observer)return;
+        observer=new MutationObserver(()=>{
+          clearTimeout(stableTimer);
+          stableTimer=setTimeout(scrape,1200);
+        });
+        observer.observe(root,{childList:true,subtree:true,characterData:true});
+      };
+
+      const execute=()=>{
+        const input=getGcseInput();
+        const cse=window.google?.search?.cse;
+        if(!input || !cse?.element){
+          if(Date.now()-started<7000){
+            readyTimer=setTimeout(execute,100);
+          }else{
+            finish(scrapeGcseResults());
+          }
+          return;
+        }
+
+        setupObserver();
+        input.value=q;
+        input.dispatchEvent(new Event('input',{bubbles:true}));
+        input.dispatchEvent(new Event('change',{bubbles:true}));
+
+        try{
+          const element=
+            cse.element.getElement('searchresults-only0') ||
+            cse.element.getAllElements()?.[0];
+          if(element){
+            element.execute(q);
+            return;
+          }
+        }catch{}
+
+        const button=getGcseButton();
+        if(button){
+          setTimeout(()=>button.click(),50);
+          return;
+        }
+
+        if(Date.now()-started<7000)readyTimer=setTimeout(execute,100);
+        else finish(scrapeGcseResults());
+      };
+
+      setupObserver();
+      safetyTimer=setTimeout(()=>finish(scrapeGcseResults()),8500);
+      execute();
+    });
+  }
+
+  function mergeSearchResults(primary,secondary){
+    const seen=new Set();
+    const output=[];
+
+    for(const item of [...primary,...secondary]){
+      const url=String(item?.url||'').trim();
+      if(!url)continue;
+      const key=url.replace(/\/$/,'').toLowerCase();
+      if(seen.has(key))continue;
+      seen.add(key);
+      output.push({
+        type:item.type||'web',
+        title:item.title||url,
+        url,
+        description:item.description||item.desc||item.snippet||'',
+        thumbnail:item.thumbnail||item.thumb||'',
+        source:item.source||cleanHost(url),
+        age:item.age||'',
+        price:item.price||'',
+        rating:item.rating,
+        reviews:item.reviews
+      });
+    }
+
+    return output;
+  }
+
+  async function fetchOfficialSearch(q,type,safe,limit=50,page=1){
+    const params=new URLSearchParams({
+      q:String(q||'').slice(0,500),
+      type,
+      safe:safe?'moderate':'off',
+      limit:String(Math.min(100,Math.max(1,limit))),
+      page:String(Math.min(100,Math.max(1,page)))
+    });
+
+    const target=SEARCH_API+'?'+params.toString();
+    const response=await fetch(proxyAsset(target),{method:'GET'});
+
+    if(!response.ok){
+      throw new Error('Search request failed ('+response.status+')');
+    }
+
+    const data=await response.json();
+    return {
+      ...data,
+      results:Array.isArray(data?.results)?data.results:[]
+    };
   }
 
   function App(){
@@ -733,48 +969,63 @@
     };
 
     const search=async(q,type=searchType)=>{
-      const value=String(q||"").trim().slice(0,500);
+      const value=String(q||'').trim().slice(0,500);
       if(!value)return;
+
       setLoading(true);
       setShowResults(true);
       setQuery(value);
       setResults([]);
+
       try{
-        const params=new URLSearchParams({
-          q:value,
-          type,
-          safe:safeSearch?"moderate":"off",
-          limit:"50",
-          page:"1"
-        });
-        const data=await fetchSearch(params);
-        setResults(Array.isArray(data.results)?data.results:[]);
+        if(type==='web'){
+          const [gsc,official]=await Promise.allSettled([
+            triggerGcse(value),
+            fetchOfficialSearch(value,'web',safeSearch,50,1)
+          ]);
+
+          const gscResults=gsc.status==='fulfilled'?gsc.value:[];
+          const officialResults=official.status==='fulfilled'?official.value.results:[];
+
+          const normalizedOfficial=officialResults.map(item=>({
+            ...item,
+            description:item.description||item.desc||'',
+            source:item.source||cleanHost(item.url),
+            thumbnail:item.thumbnail||item.thumb||''
+          }));
+
+          // Own API data leads; GSC fills additional coverage, with URL-level dedupe.
+          setResults(mergeSearchResults(normalizedOfficial,gscResults));
+        }else{
+          const data=await fetchOfficialSearch(value,type,safeSearch,50,1);
+          setResults(data.results);
+        }
       }catch(err){
-        showToast("Search unavailable",err.message);
+        showToast('Search unavailable',err.message);
       }finally{
         setLoading(false);
       }
     };
-
     useEffect(()=>{
-      if(!query||query.length<2||normalizeUrl(query)){setSuggestions([]);setSuggestionIndex(-1);return}
+      if(!query || query.length<2 || normalizeUrl(query)){
+        setSuggestions([]);
+        setSuggestionIndex(-1);
+        return;
+      }
+
       clearTimeout(suggestTimer.current);
       suggestTimer.current=setTimeout(async()=>{
         try{
-          const params=new URLSearchParams({
-            q:query.slice(0,500),
-            type:searchType,
-            safe:safeSearch?"moderate":"off",
-            limit:"5",
-            page:"1"
-          });
-          const data=await fetchSearch(params);
-          setSuggestions(Array.isArray(data.results)?data.results.slice(0,5):[]);
+          const data=await fetchOfficialSearch(query,'web',safeSearch,5,1);
+          setSuggestions(data.results.slice(0,5));
           setSuggestionIndex(-1);
-        }catch{}
-      },180);
+        }catch{
+          setSuggestions([]);
+        }
+      },220);
+
       return()=>clearTimeout(suggestTimer.current);
-    },[query,searchType,safeSearch]);
+    },[query,safeSearch]);
 
     const createTab=()=>{
       const tab={id:(crypto.randomUUID ? crypto.randomUUID() : "px-"+Date.now().toString(36)+Math.random().toString(36).slice(2,8)),title:"New Tab",url:"",history:[],historyIndex:-1};
@@ -1166,16 +1417,23 @@
         transition:{delay:Math.min(i*.025,.18),type:"spring",stiffness:260,damping:28},
         whileHover:{y:-1}
       },
-        h("div",{className:"result-url"},item.source||item.url),
-        item.thumbnail && h("img",{className:"result-thumb",src:item.thumbnail,alt:"",loading:"lazy"}),
-        h("div",{className:"result-title"},item.title||item.url),
-        searchType==="shopping" && h("div",{className:"shopping-meta"},
-          item.price||"",
-          item.rating!=null?" · "+item.rating+"/5":"",
-          item.reviews!=null?" · "+item.reviews+" reviews":""
-        ),
-        h("div",{className:"result-desc"},item.description||item.desc||""),
-        searchType==="news" && item.age && h("div",{className:"result-age"},item.age)
+        h("div",{className:"result-card-inner"},
+          h("div",{className:"result-card-text"},
+            h("div",{className:"result-site-row"},
+              h("span",{className:"result-site-name"},item.source||cleanHost(item.url))
+            ),
+            h("div",{className:"result-url"},item.url||""),
+            h("div",{className:"result-title"},item.title||item.url),
+            h("div",{className:"result-desc"},item.description||item.desc||""),
+            searchType==="shopping" && h("div",{className:"shopping-meta"},
+              item.price||"",
+              item.rating!=null?" · "+item.rating+"/5":"",
+              item.reviews!=null?" · "+item.reviews+" reviews":""
+            ),
+            searchType==="news" && item.age && h("div",{className:"result-age"},item.age)
+          ),
+          item.thumbnail && h("img",{className:"result-thumb",src:item.thumbnail,alt:"",loading:"lazy",onError:e=>e.currentTarget.remove()})
+        )
       );
     };
 
@@ -1199,7 +1457,14 @@
                   className:"result-type"+(searchType===type?" active":""),
                   onClick:()=>{setSearchType(type);search(query,type)},
                   whileTap:{scale:.96}
-                },label)
+                },
+                  searchType===type && h(motion.span,{
+                    layoutId:"result-type-highlight",
+                    className:"result-type-highlight",
+                    transition:{type:"spring",stiffness:520,damping:38,mass:.7}
+                  }),
+                  h("span",{className:"result-type-label"},label)
+                )
               )
             )
           ),
@@ -1302,6 +1567,37 @@
     );
   }
 
+
+  function installInertialScrolling(){
+    const reduce=matchMedia('(prefers-reduced-motion: reduce)');
+    const state=new WeakMap();
+    const attach=(el)=>{
+      if(!el || state.has(el) || el.closest('iframe')) return;
+      const st={target:el.scrollTop,current:el.scrollTop,raf:0};
+      state.set(el,st);
+      const tick=()=>{
+        st.current+=(st.target-st.current)*0.16;
+        if(Math.abs(st.target-st.current)<0.35){st.current=st.target;el.scrollTop=st.current;st.raf=0;return;}
+        el.scrollTop=st.current;st.raf=requestAnimationFrame(tick);
+      };
+      el.addEventListener('wheel',e=>{
+        if(reduce.matches||e.ctrlKey) return;
+        const max=Math.max(0,el.scrollHeight-el.clientHeight);
+        if(max<=0)return;
+        e.preventDefault();
+        const delta=e.deltaMode===1?e.deltaY*18:e.deltaMode===2?e.deltaY*el.clientHeight:e.deltaY;
+        st.target=Math.max(0,Math.min(max,st.target+delta*1.15));
+        if(!st.raf)st.raf=requestAnimationFrame(tick);
+      },{passive:false});
+    };
+    const scan=()=>document.querySelectorAll('*').forEach(el=>{
+      const cs=getComputedStyle(el);
+      if((cs.overflowY==='auto'||cs.overflowY==='scroll'||cs.overflow==='auto'||cs.overflow==='scroll')&&el.scrollHeight>el.clientHeight)attach(el);
+    });
+    scan();
+    new MutationObserver(scan).observe(document.body,{subtree:true,childList:true});
+  }
+  installInertialScrolling();
   createRoot(document.getElementById("root")).render(h(App));
 </script>
 </body>
