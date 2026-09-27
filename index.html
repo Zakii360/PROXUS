@@ -595,31 +595,37 @@
           const absolute=resolveNavigation(raw,pageUrl);
           if(!absolute || !/^https?:\/\//i.test(absolute))return;
 
-          // Navigation links/forms stay normal so the viewer's injected
-          // navigation bridge can handle them. Assets go through asset=1.
-          if(selector==="script"){
-            node.setAttribute(attr,proxyAsset(absolute));
-          }else if(
-            (selector==="link" && /(?:stylesheet|preload|modulepreload|icon|manifest|apple-touch-icon)/i.test(node.getAttribute("rel")||"")) ||
-            selector!=="link"
-          ){
-            node.setAttribute(attr,proxyAsset(absolute));
-          }else{
-            node.setAttribute(attr,absolute);
-          }
+          // Resolve first against the real page URL. Keep the real absolute URL
+          // as the primary resource so normal cross-origin assets can load.
+          // If the browser rejects it, the injected bridge swaps it to the
+          // web-viewer asset relay. This avoids blindly sending every image,
+          // stylesheet, script, or font through a relay that may reject it.
+          node.setAttribute(attr,absolute);
+          node.setAttribute('data-proxus-original-url',absolute);
+          node.setAttribute('data-proxus-relay-url',proxyAsset(absolute));
         });
       }
 
       doc.querySelectorAll("img[srcset],source[srcset],link[imagesrcset]").forEach(node=>{
         const attr=node.hasAttribute("imagesrcset")?"imagesrcset":"srcset";
-        node.setAttribute(attr,rewriteSrcset(node.getAttribute(attr),pageUrl));
+        const original=node.getAttribute(attr)||"";
+        const absoluteSet=original.split(',').map(part=>{
+          const bits=part.trim().split(/\s+/);
+          if(!bits[0] || isSpecialUrl(bits[0]))return part.trim();
+          const absolute=resolveNavigation(bits[0],pageUrl);
+          if(!absolute || !/^https?:\/\//i.test(absolute))return part.trim();
+          bits[0]=absolute;
+          return bits.join(' ');
+        }).join(', ');
+        node.setAttribute(attr,absoluteSet);
+        node.setAttribute('data-proxus-srcset',original);
       });
 
       const rewriteCssUrls=(css,base)=>String(css||"").replace(/url\(\s*([\"']?)([^\"')]+)\1\s*\)/gi,(full,quote,target)=>{
         if(isSpecialUrl(target)||isProxyUrl(target))return full;
         const absolute=resolveNavigation(target,base);
         return absolute && /^https?:\/\//i.test(absolute)
-          ? `url("${proxyAsset(absolute)}")`
+          ? `url("${absolute}")`
           : full;
       });
 
@@ -641,29 +647,96 @@
             return __PROXUS_PROXY+"?asset=1&url="+encodeURIComponent(u.href);
           }catch{return input}
         };
-        const __fetch=window.fetch;
-        window.fetch=function(input,init){
+        const __isHttp=(u)=>/^https?:$/i.test(u.protocol);
+
+        // Resource fallback: direct absolute URL first, relay only after an
+        // actual browser load error.
+        document.querySelectorAll('[data-proxus-original-url]').forEach(el=>{
+          el.addEventListener('error',()=>{
+            const relay=el.getAttribute('data-proxus-relay-url');
+            if(!relay || el.getAttribute('data-proxus-tried-relay')==='1')return;
+            el.setAttribute('data-proxus-tried-relay','1');
+            const tag=el.tagName.toLowerCase();
+            const attr=tag==='object'?'data':tag==='image'?'href':tag==='link'?'href':'src';
+            el.setAttribute(attr,relay);
+          },true);
+        });
+
+        document.querySelectorAll('[data-proxus-srcset]').forEach(el=>{
+          el.addEventListener('error',()=>{
+            if(el.getAttribute('data-proxus-tried-relay')==='1')return;
+            const original=el.getAttribute('data-proxus-srcset')||'';
+            const relayed=original.split(',').map(part=>{
+              const bits=part.trim().split(/\s+/);
+              if(!bits[0])return part.trim();
+              try{bits[0]=__proxify(new URL(bits[0],__PROXUS_PAGE).href)}catch{}
+              return bits.join(' ');
+            }).join(', ');
+            el.setAttribute('data-proxus-tried-relay','1');
+            el.setAttribute(el.hasAttribute('imagesrcset')?'imagesrcset':'srcset',relayed);
+          },true);
+        });
+
+        const __fetch=window.fetch.bind(window);
+        window.fetch=async function(input,init){
           try{
             const raw=typeof input==='string'?input:input?.url;
             const u=new URL(raw,__PROXUS_PAGE);
-            if(/^https?:$/i.test(u.protocol) && !/^(?:data:|blob:|javascript:|mailto:|tel:)/i.test(raw)){
+            if(__isHttp(u)){
               const method=(init?.method || (typeof input!=='string' && input?.method) || 'GET').toUpperCase();
+              // GET/HEAD can use the relay as a CORS fallback. POST/PUT/PATCH/DELETE
+              // stay direct so request bodies and headers are not destroyed.
               if(method==='GET' || method==='HEAD'){
-                if(typeof input==='string') input=__proxify(u.href);
-                else input=new Request(__proxify(u.href),input);
+                const direct=await __fetch.call(this,input,init);
+                if(direct.ok)return direct;
+                try{
+                  const relayInit={...(init||{}),method};
+                  const relay=await __fetch.call(this,__proxify(u.href),relayInit);
+                  if(relay.ok)return relay;
+                }catch{}
+                return direct;
               }
             }
           }catch{}
           return __fetch.call(this,input,init);
         };
+
         const __open=XMLHttpRequest.prototype.open;
         XMLHttpRequest.prototype.open=function(method,url,...rest){
-          try{
-            const u=new URL(url,__PROXUS_PAGE);
-            if(/^https?:$/i.test(u.protocol) && String(method).toUpperCase()==='GET') url=__proxify(u.href);
-          }catch{}
+          // Preserve POST bodies. GET requests are allowed to fall back to the
+          // relay only if the site itself permits the direct request.
           return __open.call(this,method,url,...rest);
         };
+
+        // Relative links/forms inside srcdoc must never resolve against
+        // about:srcdoc. Send them to the outer viewer with the real URL.
+        document.addEventListener('click',e=>{
+          const a=e.target?.closest?.('a[href]');
+          if(!a)return;
+          const raw=a.getAttribute('href');
+          if(!raw || /^(?:#|javascript:|mailto:|tel:|data:|blob:)/i.test(raw))return;
+          try{
+            const u=new URL(raw,__PROXUS_PAGE);
+            if(__isHttp(u)){
+              e.preventDefault();
+              e.stopPropagation();
+              parent.postMessage({type:'PROXUS_NAVIGATE',url:u.href},'*');
+            }
+          }catch{}
+        },true);
+
+        document.addEventListener('submit',e=>{
+          const form=e.target;
+          if(!form?.action)return;
+          try{
+            const u=new URL(form.action,__PROXUS_PAGE);
+            if(__isHttp(u) && String(form.method||'get').toLowerCase()==='get'){
+              e.preventDefault();
+              e.stopPropagation();
+              parent.postMessage({type:'PROXUS_NAVIGATE',url:u.href},'*');
+            }
+          }catch{}
+        },true);
       })();`;
       doc.head ? doc.head.prepend(bridge) : doc.documentElement.prepend(bridge);
 
@@ -1118,6 +1191,15 @@
       const frame=frameRef.current;
       if(!frame)return;
 
+      const onMessage=(event)=>{
+        if(event.source!==frame.contentWindow)return;
+        if(event.data?.type==='PROXUS_NAVIGATE' && typeof event.data.url==='string'){
+          const tab=currentTab();
+          if(tab) fetchPage(event.data.url,'get',true,tab.id);
+        }
+      };
+      window.addEventListener('message',onMessage);
+
       const onLoad=()=>{
         try{
           const href=frame.contentWindow?.location?.href || "";
@@ -1568,36 +1650,20 @@
   }
 
 
-  function installInertialScrolling(){
-    const reduce=matchMedia('(prefers-reduced-motion: reduce)');
-    const state=new WeakMap();
-    const attach=(el)=>{
-      if(!el || state.has(el) || el.closest('iframe')) return;
-      const st={target:el.scrollTop,current:el.scrollTop,raf:0};
-      state.set(el,st);
-      const tick=()=>{
-        st.current+=(st.target-st.current)*0.16;
-        if(Math.abs(st.target-st.current)<0.35){st.current=st.target;el.scrollTop=st.current;st.raf=0;return;}
-        el.scrollTop=st.current;st.raf=requestAnimationFrame(tick);
-      };
-      el.addEventListener('wheel',e=>{
-        if(reduce.matches||e.ctrlKey) return;
-        const max=Math.max(0,el.scrollHeight-el.clientHeight);
-        if(max<=0)return;
-        e.preventDefault();
-        const delta=e.deltaMode===1?e.deltaY*18:e.deltaMode===2?e.deltaY*el.clientHeight:e.deltaY;
-        st.target=Math.max(0,Math.min(max,st.target+delta*1.15));
-        if(!st.raf)st.raf=requestAnimationFrame(tick);
-      },{passive:false});
+  function installSmoothScrolling(){
+    const apply=()=>{
+      document.querySelectorAll('*').forEach(el=>{
+        const cs=getComputedStyle(el);
+        if((cs.overflowY==='auto'||cs.overflowY==='scroll'||cs.overflow==='auto'||cs.overflow==='scroll') && el.scrollHeight>el.clientHeight){
+          el.style.scrollBehavior='smooth';
+          el.style.overscrollBehavior='contain';
+        }
+      });
     };
-    const scan=()=>document.querySelectorAll('*').forEach(el=>{
-      const cs=getComputedStyle(el);
-      if((cs.overflowY==='auto'||cs.overflowY==='scroll'||cs.overflow==='auto'||cs.overflow==='scroll')&&el.scrollHeight>el.clientHeight)attach(el);
-    });
-    scan();
-    new MutationObserver(scan).observe(document.body,{subtree:true,childList:true});
+    apply();
+    new MutationObserver(apply).observe(document.body,{subtree:true,childList:true});
   }
-  installInertialScrolling();
+  installSmoothScrolling();
   createRoot(document.getElementById("root")).render(h(App));
 </script>
 </body>
