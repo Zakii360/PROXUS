@@ -332,6 +332,7 @@
     .result-type{height:25px;padding:0 8px;border-radius:4px;color:var(--muted);font-size:9px}
     .result-type:hover{background:var(--surface-2);color:var(--text)}
     .result-type.active{background:var(--surface-3);color:var(--text)}
+    .result-thumb{float:right;width:68px;height:50px;margin:0 0 7px 12px;border-radius:5px;object-fit:cover;background:#0c0c0f;border:1px solid var(--border)}
     .shopping-meta{margin-bottom:5px;color:#d5d5da;font-size:10px}
     .result-age{margin-top:6px;color:var(--muted-2);font-size:9px}
     .image-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
@@ -505,15 +506,33 @@
     return SUPABASE_PROXY+"?url="+encodeURIComponent(url);
   }
 
+  function proxyAsset(url){
+    return SUPABASE_PROXY+"?asset=1&url="+encodeURIComponent(url);
+  }
+
+  function isSpecialUrl(value){
+    return !value || /^(?:#|data:|blob:|javascript:|mailto:|tel:|about:|chrome:|chrome-extension:)/i.test(value);
+  }
+
+  function isProxyUrl(value){
+    try{
+      const parsed=new URL(value,window.location.href);
+      const proxy=new URL(SUPABASE_PROXY);
+      return parsed.origin===proxy.origin && parsed.pathname===proxy.pathname;
+    }catch{
+      return false;
+    }
+  }
+
   function resolveNavigation(rawUrl, baseUrl=currentUrl){
     const value=String(rawUrl||"").trim();
     if(!value)return "";
+    if(isSpecialUrl(value))return value;
 
     try{
       const parsed=new URL(value,baseUrl||window.location.href);
 
-      if(parsed.origin===new URL(SUPABASE_PROXY).origin &&
-         parsed.pathname===new URL(SUPABASE_PROXY).pathname){
+      if(isProxyUrl(parsed.href)){
         const embedded=parsed.searchParams.get("url");
         if(embedded)return embedded;
       }
@@ -522,6 +541,95 @@
     }catch{
       return value;
     }
+  }
+
+  function rewriteSrcset(value,baseUrl){
+    return String(value||"").split(",").map(part=>{
+      const bits=part.trim().split(/\s+/);
+      if(!bits[0] || isSpecialUrl(bits[0]))return part.trim();
+      const absolute=resolveNavigation(bits[0],baseUrl);
+      if(!absolute || /^https?:\/\//i.test(bits[0])===false && isProxyUrl(absolute))return part.trim();
+      bits[0]=proxyAsset(absolute);
+      return bits.join(" ");
+    }).join(", ");
+  }
+
+  function rewritePageForSrcdoc(html,pageUrl){
+    try{
+      const parser=new DOMParser();
+      const doc=parser.parseFromString(html,"text/html");
+
+      // A strict meta CSP can blank an otherwise valid srcdoc page because
+      // the rewritten document executes from the iframe's srcdoc context.
+      doc.querySelectorAll('meta[http-equiv="Content-Security-Policy" i]').forEach(node=>node.remove());
+
+      const resourceAttrs=[
+        ["img","src"],["source","src"],["video","src"],["audio","src"],["track","src"],
+        ["object","data"],["embed","src"],["image","href"],["script","src"],
+        ["input","src"],["button","formaction"],["input","formaction"],["textarea","formaction"],
+        ["link","href"]
+      ];
+
+      for(const [selector,attr] of resourceAttrs){
+        doc.querySelectorAll(selector).forEach(node=>{
+          const raw=node.getAttribute(attr);
+          if(!raw || isSpecialUrl(raw) || isProxyUrl(raw))return;
+
+          const absolute=resolveNavigation(raw,pageUrl);
+          if(!absolute || !/^https?:\/\//i.test(absolute))return;
+
+          // Navigation links/forms stay normal so the viewer's injected
+          // navigation bridge can handle them. Assets go through asset=1.
+          if(selector==="script"){
+            // Let the full web-viewer path rewrite JS imports the same way the
+            // original viewer does, rather than turning module-relative imports
+            // into dead asset URLs.
+            node.setAttribute(attr,proxify(absolute));
+          }else if(
+            (selector==="link" && /(?:stylesheet|preload|modulepreload|icon|manifest|apple-touch-icon)/i.test(node.getAttribute("rel")||"")) ||
+            selector!=="link"
+          ){
+            node.setAttribute(attr,proxyAsset(absolute));
+          }else{
+            node.setAttribute(attr,absolute);
+          }
+        });
+      }
+
+      doc.querySelectorAll("img[srcset],source[srcset],link[imagesrcset]").forEach(node=>{
+        const attr=node.hasAttribute("imagesrcset")?"imagesrcset":"srcset";
+        node.setAttribute(attr,rewriteSrcset(node.getAttribute(attr),pageUrl));
+      });
+
+      const rewriteCssUrls=(css,base)=>String(css||"").replace(/url\(\s*([\"']?)([^\"')]+)\1\s*\)/gi,(full,quote,target)=>{
+        if(isSpecialUrl(target)||isProxyUrl(target))return full;
+        const absolute=resolveNavigation(target,base);
+        return absolute && /^https?:\/\//i.test(absolute)
+          ? `url("${proxyAsset(absolute)}")`
+          : full;
+      });
+
+      doc.querySelectorAll("style").forEach(style=>{
+        style.textContent=rewriteCssUrls(style.textContent,pageUrl);
+      });
+
+      doc.querySelectorAll("[style]").forEach(node=>{
+        node.setAttribute("style",rewriteCssUrls(node.getAttribute("style"),pageUrl));
+      });
+
+      return "<!doctype html>\n"+doc.documentElement.outerHTML;
+    }catch{
+      return html;
+    }
+  }
+
+  async function fetchSearch(params){
+    // The official endpoint is the target; the relay only avoids browser CORS.
+    const target=SEARCH_API+"?"+params.toString();
+    const response=await fetch(proxyAsset(target),{method:"GET"});
+    if(!response.ok)throw new Error("Search request failed ("+response.status+")");
+    const text=await response.text();
+    try{return JSON.parse(text)}catch{throw new Error("Search returned invalid data")}
   }
 
   function App(){
@@ -586,7 +694,7 @@
         if(!response.ok)throw new Error("Server responded with "+response.status);
         const sourceHtml=await response.text();
         const finalUrl=resolveNavigation(response.headers.get("X-Final-Url")||resolvedUrl,resolvedUrl);
-        const html=sourceHtml;
+        const html=rewritePageForSrcdoc(sourceHtml,finalUrl);
         if(pushHistory){
           setTabs(prev=>prev.map(t=>{
             if(t.id!==targetTabId)return t;
@@ -639,9 +747,7 @@
           limit:"50",
           page:"1"
         });
-        const response=await fetch(SEARCH_API+"?"+params.toString(),{method:"GET"});
-        if(!response.ok)throw new Error("Search request failed ("+response.status+")");
-        const data=await response.json();
+        const data=await fetchSearch(params);
         setResults(Array.isArray(data.results)?data.results:[]);
       }catch(err){
         showToast("Search unavailable",err.message);
@@ -662,9 +768,7 @@
             limit:"5",
             page:"1"
           });
-          const response=await fetch(SEARCH_API+"?"+params.toString(),{method:"GET"});
-          if(!response.ok)return;
-          const data=await response.json();
+          const data=await fetchSearch(params);
           setSuggestions(Array.isArray(data.results)?data.results.slice(0,5):[]);
           setSuggestionIndex(-1);
         }catch{}
@@ -1006,7 +1110,7 @@
             )
           ),
           h("div",{className:"shortcuts"},
-            ["360 Search","Open source","Web development"].map((label,i)=>
+            ["Search","Open source","Web development"].map((label,i)=>
               h(motion.button, {
                 key:label,
                 className:"shortcut",
@@ -1063,6 +1167,7 @@
         whileHover:{y:-1}
       },
         h("div",{className:"result-url"},item.source||item.url),
+        item.thumbnail && h("img",{className:"result-thumb",src:item.thumbnail,alt:"",loading:"lazy"}),
         h("div",{className:"result-title"},item.title||item.url),
         searchType==="shopping" && h("div",{className:"shopping-meta"},
           item.price||"",
