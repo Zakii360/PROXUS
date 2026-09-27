@@ -194,6 +194,13 @@
 
     .main{min-width:0;min-height:0;flex:1;height:100%;display:flex;flex-direction:column}
 
+    .region-control{position:relative;display:flex;align-items:center}.region-control::after{content:"";position:absolute;right:0;top:32px;width:205px;height:10px;pointer-events:auto}.region-menu{pointer-events:auto}
+    .region-button{height:32px;min-width:34px;padding:0 8px;display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:5px;background:var(--surface);color:var(--muted);font-size:10px;font-weight:650;cursor:pointer}
+    .region-button:hover{background:var(--surface-2);color:var(--text);border-color:var(--border-strong)}
+    .region-menu{position:absolute;right:0;top:34px;z-index:80;width:190px;padding:5px;background:#151519;border:1px solid var(--border-strong);border-radius:7px;box-shadow:0 24px 70px rgba(0,0,0,.5);transform-origin:top right}
+    .region-option{width:100%;height:32px;padding:0 8px;display:flex;align-items:center;gap:8px;border:0;border-radius:4px;background:transparent;color:var(--muted);font:inherit;font-size:10px;text-align:left;cursor:pointer}
+    .region-option:hover,.region-option.active{background:var(--surface-2);color:var(--text)}
+    .region-code{margin-left:auto;color:var(--muted-2);font-size:9px}
     .toolbar{
       position:relative;
       z-index:15;
@@ -519,12 +526,30 @@
     return "";
   }
 
-  function proxify(url){
-    return SUPABASE_PROXY+"?url="+encodeURIComponent(url);
+  function proxify(url,regionCode="auto"){
+    const params=new URLSearchParams({url:String(url)});
+    if(regionCode && regionCode!=="auto") params.set("country",regionCode.toLowerCase());
+    return SUPABASE_PROXY+"?"+params.toString();
   }
 
-  function proxyAsset(url){
-    return SUPABASE_PROXY+"?asset=1&url="+encodeURIComponent(url);
+  function proxyAsset(url,regionCode="auto"){
+    const params=new URLSearchParams({asset:"1",url:String(url)});
+    if(regionCode && regionCode!=="auto") params.set("country",regionCode.toLowerCase());
+    return SUPABASE_PROXY+"?"+params.toString();
+  }
+
+  async function verifyRegionRoute(regionCode){
+    if(!regionCode || regionCode==="auto")return {ok:true,detected:"auto"};
+    try{
+      const probe="https://api.country.is/";
+      const response=await fetch(proxyAsset(probe,regionCode),{method:"GET",cache:"no-store"});
+      if(!response.ok)return {ok:false,detected:"error"};
+      const data=await response.json();
+      const detected=String(data?.country||"").toUpperCase();
+      return {ok:detected===regionCode.toUpperCase(),detected:detected||"unknown"};
+    }catch{
+      return {ok:false,detected:"error"};
+    }
   }
 
   function isSpecialUrl(value){
@@ -959,12 +984,20 @@
     const [searchType,setSearchType]=useState("web");
     const [safeSearch,setSafeSearch]=useState(true);
     const [dustEnabled,setDustEnabled]=useState(true);
+    const [region,setRegion]=useStorage("proxus-region","auto");
+    const [regionOpen,setRegionOpen]=useState(false);
+    const regionCloseTimer=useRef(null);
     const [settingsOpen,setSettingsOpen]=useState(false);
     const [suggestions,setSuggestions]=useState([]);
     const [suggestionIndex,setSuggestionIndex]=useState(-1);
     const [toast,setToast]=useState(null);
     const frameRef=useRef(null);
     const suggestTimer=useRef(null);
+
+    const regions=[
+      {code:"auto",name:"Automatic"},{code:"US",name:"United States"},{code:"CA",name:"Canada"},{code:"GB",name:"United Kingdom"},{code:"DE",name:"Germany"},{code:"FR",name:"France"},{code:"NL",name:"Netherlands"},{code:"SE",name:"Sweden"},{code:"SG",name:"Singapore"},{code:"JP",name:"Japan"},{code:"AU",name:"Australia"},{code:"BR",name:"Brazil"}
+    ];
+    const selectedRegion=regions.find(r=>r.code===region)||regions[0];
 
     const activeTab=useMemo(()=>tabs.find(t=>t.id===activeId)||tabs[0],[tabs,activeId]);
     const currentTab=()=>activeTab;
@@ -999,7 +1032,7 @@
 
       setLoading(true);
       try{
-        const response=await fetch(proxify(resolvedUrl),{method:method==="post"?"POST":"GET"});
+        const response=await fetch(proxify(resolvedUrl,region),{method:method==="post"?"POST":"GET"});
         if(!response.ok)throw new Error("Server responded with "+response.status);
         const sourceHtml=await response.text();
         const finalUrl=resolveNavigation(response.headers.get("X-Final-Url")||resolvedUrl,resolvedUrl);
@@ -1397,6 +1430,18 @@
               h("span",{className:"suggestion-type"},"WEB")
             )
           )
+        )
+      ),
+      h("div",{className:"region-control",onPointerEnter:()=>{clearTimeout(regionCloseTimer.current)},onPointerLeave:()=>{clearTimeout(regionCloseTimer.current);regionCloseTimer.current=setTimeout(()=>setRegionOpen(false),220)}},
+        h(motion.button,{className:"region-button",type:"button",onClick:()=>setRegionOpen(v=>!v),whileTap:{scale:.96}},
+          h(Icon,{name:"globe",size:14}),
+          selectedRegion.code!=="auto" && h("span",null,selectedRegion.code)
+        ),
+        regionOpen && h(motion.div,{className:"region-menu",onPointerEnter:()=>clearTimeout(regionCloseTimer.current),onPointerLeave:()=>{clearTimeout(regionCloseTimer.current);regionCloseTimer.current=setTimeout(()=>setRegionOpen(false),220)},initial:{opacity:0,scale:.96,y:-4},animate:{opacity:1,scale:1,y:0},transition:{type:"spring",stiffness:420,damping:28}},
+          regions.map(item=>h("button",{key:item.code,type:"button",className:"region-option"+(item.code===region?" active":""),onClick:()=>{setRegion(item.code);setRegionOpen(false);showToast(item.code==="auto"?"Location":"Testing location",item.code==="auto"?"Automatic routing":"Checking the relay egress…");
+            if(item.code!=="auto"){verifyRegionRoute(item.code).then(result=>{if(result.ok)showToast("Location active",item.name+" egress verified");else showToast("Location not routed",result.detected && result.detected!=="ERROR"?"Relay reports "+result.detected+" egress":"The current relay does not expose "+item.name+" egress")})}}},
+            h(Icon,{name:"globe",size:12}),h("span",null,item.name),h("span",{className:"region-code"},item.code)
+          ))
         )
       ),
       h(motion.button,{className:"icon-button",onClick:createTab,whileTap:{scale:.9}},h(Icon,{name:"plus"}))
