@@ -1,74 +1,55 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="color-scheme" content="dark">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="PROXUS" />
   <title>PROXUS</title>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@19.3.0",
+      "react/jsx-runtime": "https://esm.sh/react@19.3.0/jsx-runtime",
+      "react/jsx-dev-runtime": "https://esm.sh/react@19.3.0/jsx-dev-runtime",
+      "react-dom": "https://esm.sh/react-dom@19.3.0",
+      "react-dom/client": "https://esm.sh/react-dom@19.3.0/client",
+      "motion/react": "https://esm.sh/motion@12.23.12/react?external=react,react-dom"
+    }
+  }
+  </script>
 
   <style>
     @import url("https://cdn.jsdelivr.net/npm/@fontsource-variable/geist@5.2.8/index.css");
     @import url("https://cdn.jsdelivr.net/npm/@fontsource-variable/manrope@5.2.8/index.css");
 
-    :root{
+    :root {
       --bg:#000;
-      --surface:color-mix(in srgb,#101014 80%,transparent);
-      --surface-2:color-mix(in srgb,#17171c 80%,transparent);
-      --surface-3:color-mix(in srgb,#202026 80%,transparent);
-      --surface-solid:#16161b;
-      --border:color-mix(in srgb,var(--accent) 15%,color-mix(in srgb,#242429 85%,transparent));
-      --border-2:color-mix(in srgb,var(--accent) 20%,color-mix(in srgb,#34343b 85%,transparent));
+      --surface:rgba(16,16,20,.76);
+      --surface-2:rgba(23,23,28,.82);
+      --surface-3:rgba(31,31,37,.9);
+      --border:rgba(255,255,255,.09);
+      --border-strong:rgba(255,255,255,.16);
       --text:#f5f6f8;
-      --muted:#9a9aa2;
-      --muted-2:#6b6b73;
-      --accent:#fff;
-      --accent-contrast:#000;
-      --sidebar-w:240px;
-      --sidebar-w-compact:56px;
-      --radius:6px;
-      --radius-sm:5px;
-      --radius-xs:4px;
+      --muted:#96969e;
+      --muted-2:#66666e;
+      --sidebar:240px;
       --ease:cubic-bezier(.16,1,.3,1);
     }
 
     *{box-sizing:border-box}
-
-    html,body,#app{
-      width:100%;
-      height:100%;
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-    }
-
+    html,body,#root{margin:0;width:100%;height:100%;overflow:hidden;background:#000}
     body{
-      overflow:hidden;
-      font-family:Geist Variable,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      font-size:14px;
+      color:var(--text);
+      font-family:Geist Variable,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
       -webkit-font-smoothing:antialiased;
       text-rendering:optimizeLegibility;
     }
-
-    button,input{
-      font:inherit;
-      color:inherit;
-    }
-
-    button{
-      border:0;
-      background:transparent;
-      cursor:pointer;
-    }
-
-    a{
-      color:inherit;
-      text-decoration:none;
-    }
-
-    svg{
-      display:block;
-      flex-shrink:0;
-    }
+    button,input{font:inherit;color:inherit}
+    button{border:0;background:none;cursor:pointer}
+    input{outline:none}
+    svg{display:block}
 
     .app{
       position:relative;
@@ -76,104 +57,56 @@
       height:100%;
       overflow:hidden;
       background:
-        radial-gradient(circle at 70% -20%,rgba(50,70,130,.14),transparent 38%),
-        radial-gradient(circle at 10% 100%,rgba(0,90,110,.08),transparent 32%),
+        radial-gradient(circle at 70% -20%, rgba(37,54,104,.11), transparent 35%),
+        radial-gradient(circle at 0 100%, rgba(8,75,92,.055), transparent 31%),
         #000;
     }
 
-    /* Original-style sidebar */
+    .dust{
+      position:fixed;
+      inset:0;
+      width:100%;
+      height:100%;
+      z-index:0;
+      pointer-events:none;
+    }
+
+    .shell{
+      position:relative;
+      z-index:1;
+      width:100%;
+      height:100%;
+      display:flex;
+    }
 
     .sidebar{
       position:relative;
       z-index:20;
-      flex-shrink:0;
-      width:var(--sidebar-w);
+      width:var(--sidebar);
+      min-width:0;
       height:100%;
-      background:color-mix(in srgb,var(--bg) 55%,transparent);
-      backdrop-filter:blur(32px) saturate(1.4);
-      -webkit-backdrop-filter:blur(32px) saturate(1.4);
-      border-right:1px solid color-mix(in srgb,var(--border) 70%,transparent);
-      transition:width .26s var(--ease);
+      flex:0 0 var(--sidebar);
       overflow:hidden;
-    }
-
-    .sidebar.compact{
-      width:var(--sidebar-w-compact);
+      border-right:1px solid var(--border);
+      background:rgba(7,7,9,.78);
+      backdrop-filter:blur(28px) saturate(1.3);
+      -webkit-backdrop-filter:blur(28px) saturate(1.3);
     }
 
     .sidebar-inner{
-      width:100%;
       height:100%;
+      padding:8px;
       display:flex;
       flex-direction:column;
-      padding:.5rem;
-      gap:.5rem;
-    }
-
-    .sidebar.compact .sidebar-inner{
-      align-items:center;
-      padding:.5rem .35rem;
-    }
-
-    .sidebar-header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:.4rem;
-      padding:.15rem .35rem 0;
-    }
-
-    .header-left,
-    .header-right{
-      display:flex;
-      align-items:center;
-      gap:.15rem;
-    }
-
-    .icon-btn{
-      width:28px;
-      height:28px;
-      border-radius:var(--radius-xs);
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      color:var(--muted);
-      transition:
-        background-color .15s ease,
-        color .15s ease;
-    }
-
-    .icon-btn:hover:not(:disabled){
-      background:var(--surface-2);
-      color:var(--text);
-    }
-
-    .icon-btn.active{
-      background:var(--surface-3);
-      color:var(--text);
-    }
-
-    .icon-btn:disabled{
-      opacity:.35;
-      cursor:not-allowed;
-    }
-
-    .icon-btn svg{
-      width:16px;
-      height:16px;
-      stroke:currentColor;
-      fill:none;
-      stroke-width:1.8;
-      stroke-linecap:round;
-      stroke-linejoin:round;
+      gap:8px;
     }
 
     .brand{
-      padding:.25rem .45rem;
+      height:38px;
       display:flex;
       align-items:center;
-      gap:.6rem;
-      margin-top:.05rem;
+      gap:9px;
+      padding:0 5px;
     }
 
     .brand-mark{
@@ -182,466 +115,152 @@
       border-radius:6px;
       background:#fff;
       color:#000;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-family:Manrope Variable,sans-serif;
-      font-weight:700;
-      font-size:10px;
-      letter-spacing:-.04em;
-    }
-
-    .brand-copy{
-      min-width:0;
-    }
-
-    .brand-name{
-      font-size:13px;
-      font-weight:650;
-      line-height:1.1;
-    }
-
-    .brand-sub{
-      margin-top:3px;
-      color:var(--muted-2);
-      font-size:9px;
-    }
-
-    .sidebar.compact .brand-copy{
-      display:none;
-    }
-
-    /* Sidebar omnibox */
-
-    .sidebar-omnibox{
-      display:flex;
-      align-items:center;
-      gap:.5rem;
-      width:100%;
-      height:34px;
-      padding:0 .65rem;
-      border:1px solid var(--border);
-      background:var(--surface);
-      border-radius:var(--radius-sm);
-      color:var(--muted);
-      transition:
-        background-color .15s ease,
-        border-color .15s ease;
-    }
-
-    .sidebar-omnibox:focus-within{
-      background:var(--surface-2);
-      border-color:var(--accent);
-    }
-
-    .sidebar-omnibox svg{
-      width:13px;
-      height:13px;
-      stroke:currentColor;
-      fill:none;
-      stroke-width:1.8;
-      stroke-linecap:round;
-      stroke-linejoin:round;
-    }
-
-    .sidebar-omnibox input{
-      flex:1;
-      min-width:0;
-      height:100%;
-      border:0;
-      outline:0;
-      background:transparent;
-      font-size:11px;
-    }
-
-    .sidebar-omnibox input::placeholder{
-      color:var(--muted-2);
-    }
-
-    .sidebar-compact-controls{
-      display:none;
-    }
-
-    .sidebar.compact .sidebar-omnibox,
-    .sidebar.compact .brand,
-    .sidebar.compact .bookmarks-grid,
-    .sidebar.compact .new-tab,
-    .sidebar.compact .tab-title,
-    .sidebar.compact .tab-close,
-    .sidebar.compact .bottom-label{
-      display:none;
-    }
-
-    .sidebar.compact .sidebar-compact-controls{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:4px;
-      width:100%;
-    }
-
-    /* Bookmarks */
-
-    .bookmarks-grid{
       display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:.4rem;
-      padding:0 .25rem;
-    }
-
-    .bookmark-tile{
-      aspect-ratio:1;
-      border-radius:var(--radius);
-      background:var(--surface-2);
-      border:1px solid transparent;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      color:var(--muted);
-      transition:
-        background-color .15s ease,
-        border-color .15s ease,
-        transform .15s var(--ease);
-    }
-
-    .bookmark-tile:hover{
-      background:var(--surface-3);
-      border-color:var(--border);
-      transform:translateY(-1px);
-    }
-
-    .bookmark-letter{
-      width:22px;
-      height:22px;
-      border-radius:4px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background:#202026;
-      color:#d7d7dc;
+      place-items:center;
+      font-family:Manrope Variable,sans-serif;
       font-size:10px;
+      font-weight:800;
+      letter-spacing:-.06em;
+      flex:0 0 auto;
+    }
+
+    .brand-name{font-size:13px;font-weight:650;line-height:1}
+    .brand-sub{margin-top:3px;color:var(--muted-2);font-size:9px}
+
+    .side-search{
+      height:34px;
+      display:flex;
+      align-items:center;
+      gap:7px;
+      padding:0 9px;
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:5px;
+    }
+
+    .side-search:focus-within{background:var(--surface-2);border-color:var(--border-strong)}
+    .side-search input{width:100%;height:100%;background:none;border:0;font-size:11px}
+    .side-search input::placeholder{color:var(--muted-2)}
+
+    .bookmarks{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+    .bookmark{
+      height:36px;
+      border:1px solid transparent;
+      border-radius:5px;
+      background:rgba(255,255,255,.025);
+      color:var(--muted);
+      display:grid;
+      place-items:center;
+      font-size:9px;
       font-weight:650;
     }
-
-    /* Tabs */
+    .bookmark:hover{background:var(--surface-2);border-color:var(--border);color:var(--text)}
 
     .new-tab{
+      height:36px;
       display:flex;
       align-items:center;
-      gap:.6rem;
-      padding:.6rem .7rem;
-      border-radius:var(--radius-sm);
-      color:var(--muted);
-      font-size:13px;
-      transition:
-        background-color .15s ease,
-        color .15s ease;
-    }
-
-    .new-tab:hover{
-      background:var(--surface-2);
-      color:var(--text);
-    }
-
-    .tab-list{
-      list-style:none;
-      padding:0;
-      margin:.1rem 0 0;
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-      overflow-y:auto;
-      flex:1;
-      min-height:0;
-    }
-
-    .tab-item{
-      position:relative;
-      display:flex;
-      align-items:center;
-      gap:.6rem;
-      padding:.6rem .7rem;
-      border-radius:var(--radius-sm);
-      cursor:pointer;
-      overflow:hidden;
-      color:var(--muted);
-      transition:
-        background-color .15s ease,
-        color .15s ease;
-    }
-
-    .tab-item:hover:not(.active){
-      background:var(--surface-2);
-      color:var(--text);
-    }
-
-    .tab-item.active{
-      background:var(--surface-2);
-      color:var(--text);
-    }
-
-    .tab-icon{
-      width:18px;
-      height:18px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      flex-shrink:0;
-    }
-
-    .tab-icon svg{
-      width:15px;
-      height:15px;
-      stroke:currentColor;
-      fill:none;
-      stroke-width:1.7;
-      stroke-linecap:round;
-      stroke-linejoin:round;
-    }
-
-    .tab-title{
-      flex:1;
-      min-width:0;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      font-size:13px;
-    }
-
-    .tab-close{
-      width:20px;
-      height:20px;
+      gap:9px;
+      padding:0 9px;
       border-radius:5px;
       color:var(--muted);
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      opacity:0;
-      transition:
-        opacity .15s ease,
-        background-color .15s ease,
-        color .15s ease;
+      font-size:11px;
     }
+    .new-tab:hover{background:var(--surface-2);color:var(--text)}
 
-    .tab-item:hover .tab-close,
-    .tab-item.active .tab-close{
-      opacity:1;
-    }
+    .tab-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px;min-height:0;overflow:auto;flex:1}
 
-    .tab-close:hover{
-      background:var(--border);
-      color:var(--text);
-    }
-
-    /* Bottom */
-
-    .sidebar-bottom{
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-      padding-top:.4rem;
-      border-top:1px solid var(--border);
-    }
-
-    .bottom-btn{
-      display:flex;
-      align-items:center;
-      gap:.6rem;
-      width:100%;
-      padding:.55rem .7rem;
-      border-radius:var(--radius-sm);
-      color:var(--muted);
-      font-size:12px;
-      transition:
-        background-color .15s ease,
-        color .15s ease;
-    }
-
-    .bottom-btn:hover{
-      background:var(--surface-2);
-      color:var(--text);
-    }
-
-    .bottom-btn.active{
-      background:var(--surface-2);
-      color:var(--text);
-    }
-
-    /* Main */
-
-    .main{
+    .tab{
       position:relative;
-      flex:1;
-      min-width:0;
-      height:100%;
+      min-height:36px;
       display:flex;
-      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      padding:0 7px;
+      border-radius:5px;
+      color:var(--muted);
+      overflow:hidden;
     }
+    .tab:hover{color:var(--text)}
+    .tab-title{position:relative;z-index:1;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+    .tab-close{position:relative;z-index:2;width:20px;height:20px;display:grid;place-items:center;border-radius:4px;color:var(--muted);opacity:0}
+    .tab:hover .tab-close,.tab.active .tab-close{opacity:1}
+    .tab-close:hover{background:rgba(255,255,255,.08);color:var(--text)}
+    .tab-highlight{position:absolute;inset:0;border-radius:5px;background:var(--surface-2);z-index:0}
+
+    .side-bottom{padding-top:6px;border-top:1px solid var(--border);display:grid;gap:2px}
+    .side-button{height:34px;display:flex;align-items:center;gap:9px;padding:0 9px;border-radius:5px;color:var(--muted);font-size:11px}
+    .side-button:hover{background:var(--surface-2);color:var(--text)}
+
+    .main{min-width:0;min-height:0;flex:1;height:100%;display:flex;flex-direction:column}
 
     .toolbar{
       position:relative;
-      z-index:20;
+      z-index:15;
       height:52px;
+      flex:0 0 52px;
       display:flex;
       align-items:center;
-      gap:.5rem;
-      padding:.5rem;
-      background:color-mix(in srgb,var(--bg) 55%,transparent);
-      backdrop-filter:blur(32px) saturate(1.4);
-      -webkit-backdrop-filter:blur(32px) saturate(1.4);
-      border-bottom:1px solid color-mix(in srgb,var(--border) 70%,transparent);
+      gap:6px;
+      padding:8px;
+      border-bottom:1px solid var(--border);
+      background:rgba(5,5,7,.68);
+      backdrop-filter:blur(26px) saturate(1.3);
+      -webkit-backdrop-filter:blur(26px) saturate(1.3);
     }
 
-    .nav-group{
-      display:flex;
-      align-items:center;
-      gap:.15rem;
-      flex-shrink:0;
-    }
-
-    .omnibox-wrap{
+    .toolbar-actions{display:flex;gap:2px;align-items:center}
+    .icon-button{
       position:relative;
-      flex:1;
-      min-width:0;
+      width:28px;
+      height:28px;
+      display:grid;
+      place-items:center;
+      border-radius:5px;
+      color:var(--muted);
     }
+    .icon-button:hover:not(:disabled){background:var(--surface-2);color:var(--text)}
+    .icon-button:disabled{opacity:.27;cursor:not-allowed}
 
+    .omnibox-wrap{position:relative;flex:1;min-width:0}
     .omnibox{
       height:36px;
-      width:100%;
       display:flex;
       align-items:center;
-      gap:.55rem;
-      padding:0 .8rem;
-      border-radius:var(--radius-sm);
+      gap:8px;
+      padding:0 9px;
       border:1px solid var(--border);
+      border-radius:5px;
       background:var(--surface);
-      color:var(--muted);
-      transition:
-        border-color .15s ease,
-        background-color .15s ease,
-        box-shadow .15s ease;
     }
-
-    .omnibox.focused,
-    .omnibox:focus-within{
-      background:var(--surface-2);
-      border-color:var(--accent);
-      box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 15%,transparent);
-    }
-
-    .omnibox svg{
-      width:15px;
-      height:15px;
-      stroke:currentColor;
-      fill:none;
-      stroke-width:1.8;
-      stroke-linecap:round;
-      stroke-linejoin:round;
-    }
-
-    .omnibox input{
-      flex:1;
-      min-width:0;
-      height:100%;
-      border:0;
-      outline:0;
-      background:transparent;
-      color:var(--text);
-      font-size:12px;
-    }
-
-    .omnibox input::placeholder{
-      color:var(--muted-2);
-    }
-
-    .omnibox-star{
-      width:25px;
-      height:25px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border-radius:4px;
-      color:var(--muted);
-    }
-
-    .omnibox-star:hover{
-      background:var(--surface-3);
-      color:var(--text);
-    }
-
-    .omnibox-star.saved{
-      color:#fff;
-    }
+    .omnibox:focus-within{background:var(--surface-2);border-color:var(--border-strong)}
+    .omnibox input{min-width:0;flex:1;height:100%;border:0;background:transparent;font-size:12px}
+    .omnibox input::placeholder{color:var(--muted-2)}
+    .star{width:24px;height:24px;display:grid;place-items:center;border-radius:4px;color:var(--muted)}
+    .star:hover{background:rgba(255,255,255,.07);color:var(--text)}
+    .star.saved{color:#fff}
 
     .suggestions{
       position:absolute;
-      top:calc(100% + 6px);
       left:0;
       right:0;
-      padding:5px;
+      top:41px;
+      z-index:50;
+      display:none;
       margin:0;
+      padding:5px;
       list-style:none;
-      background:var(--surface-solid);
-      border:1px solid var(--border-2);
-      border-radius:var(--radius);
-      box-shadow:0 18px 50px rgba(0,0,0,.45);
-      backdrop-filter:blur(24px);
-      -webkit-backdrop-filter:blur(24px);
-      display:none;
-      z-index:100;
+      background:#151519;
+      border:1px solid var(--border-strong);
+      border-radius:5px;
+      box-shadow:0 22px 60px rgba(0,0,0,.45);
     }
+    .suggestions.open{display:block}
+    .suggestion{height:34px;padding:0 9px;display:flex;align-items:center;gap:8px;border-radius:4px;color:var(--muted);font-size:11px}
+    .suggestion:hover,.suggestion.selected{background:var(--surface-2);color:var(--text)}
+    .suggestion-type{margin-left:auto;color:var(--muted-2);font-size:8px}
 
-    .suggestions.visible{
-      display:block;
-    }
-
-    .suggestion{
-      display:flex;
-      align-items:center;
-      gap:.65rem;
-      padding:.55rem .65rem;
-      border-radius:var(--radius-xs);
-      color:var(--muted);
-      cursor:pointer;
-      font-size:12px;
-    }
-
-    .suggestion:hover,
-    .suggestion.selected{
-      background:var(--surface-2);
-      color:var(--text);
-    }
-
-    .suggestion-type{
-      margin-left:auto;
-      color:var(--muted-2);
-      font-size:9px;
-    }
-
-    /* Workspace */
-
-    .workspace{
-      position:relative;
-      flex:1;
-      min-height:0;
-      overflow:hidden;
-    }
-
-    .web-frame{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      border:0;
-      background:#000;
-      display:none;
-    }
-
-    .web-frame.visible{
-      display:block;
-    }
-
-    /* New tab */
+    .view{position:relative;flex:1;min-height:0;overflow:hidden}
 
     .home{
       position:absolute;
@@ -649,1621 +268,754 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:2rem;
       overflow:auto;
-      background:transparent;
+      background:radial-gradient(circle at 50% 42%,rgba(31,45,85,.12),transparent 36%);
     }
 
-    .home::before{
-      content:"";
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      background:#0000001a;
-    }
-
-    .home::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      pointer-events:none;
-      opacity:.045;
-      mix-blend-mode:overlay;
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    }
-
-    .home-inner{
-      position:relative;
-      z-index:1;
+    .home-inner{width:min(670px,calc(100% - 40px));margin-top:-6vh;text-align:center}
+    .logo{margin:0;font-family:Manrope Variable,sans-serif;font-size:64px;line-height:.93;letter-spacing:-.065em;font-weight:650;will-change:transform}
+    .logo-line{height:3px;margin-top:14px;border-radius:999px;background:#fff;transform-origin:center;box-shadow:0 0 18px rgba(255,255,255,.15)}
+    .home-search{margin-top:28px}
+    .home-search-inner{
+      height:52px;
       width:100%;
-      max-width:680px;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:1.75rem;
-      margin-top:-6vh;
-    }
-
-    .logo-wrap{
-      display:inline-block;
-    }
-
-    .logo{
-      margin:0;
-      user-select:none;
-      font-family:Manrope Variable,Manrope,Geist Variable,sans-serif;
-      font-size:64px;
-      font-weight:600;
-      letter-spacing:-.055em;
-      line-height:1;
-      color:var(--accent);
-    }
-
-    .logo-underline{
-      margin-top:1rem;
-      height:4px;
-      width:100%;
-      border-radius:999px;
-      background:var(--accent);
-      box-shadow:0 0 18px color-mix(in srgb,var(--accent) 40%,transparent);
-      transform-origin:center;
-      animation:underline-expand .38s cubic-bezier(.22,1,.36,1) both;
-    }
-
-    @keyframes underline-expand{
-      from{transform:scaleX(0)}
-      to{transform:scaleX(1)}
-    }
-
-    .tagline{
-      color:var(--muted);
-      font-size:13px;
-      letter-spacing:.02em;
-      text-align:center;
-    }
-
-    .home-search{
-      width:100%;
-    }
-
-    .home-search-box{
-      width:100%;
-      height:50px;
-      display:flex;
-      align-items:center;
-      gap:.75rem;
-      padding:0 1.2rem;
-      background:var(--surface);
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      color:var(--muted);
-      transition:
-        border-color .15s ease,
-        background-color .15s ease,
-        box-shadow .15s ease;
-    }
-
-    .home-search-box:focus-within{
-      background:var(--surface-2);
-      border-color:var(--accent);
-      box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 15%,transparent);
-    }
-
-    .home-search-box input{
-      flex:1;
-      min-width:0;
-      height:100%;
-      border:0;
-      outline:0;
-      background:transparent;
-      color:var(--text);
-      font-size:15px;
-    }
-
-    .home-search-box input::placeholder{
-      color:var(--muted-2);
-    }
-
-    .home-actions{
-      display:flex;
-      align-items:center;
-      gap:6px;
-      flex-wrap:wrap;
-      justify-content:center;
-    }
-
-    .home-chip{
-      padding:.45rem .7rem;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background:rgba(255,255,255,.02);
-      color:var(--muted);
-      font-size:10px;
-      transition:
-        background-color .15s ease,
-        color .15s ease,
-        border-color .15s ease;
-    }
-
-    .home-chip:hover{
-      background:var(--surface-2);
-      color:var(--text);
-      border-color:var(--border-2);
-    }
-
-    .warning{
-      width:100%;
-      display:flex;
-      gap:.7rem;
-      padding:.8rem .9rem;
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      background:rgba(255,255,255,.018);
-      text-align:left;
-    }
-
-    .warning svg{
-      width:16px;
-      height:16px;
-      color:#aaaab2;
-      margin-top:1px;
-      stroke:currentColor;
-      fill:none;
-      stroke-width:1.7;
-      stroke-linecap:round;
-      stroke-linejoin:round;
-    }
-
-    .warning-title{
-      font-size:11px;
-      font-weight:650;
-      margin-bottom:3px;
-    }
-
-    .warning-copy{
-      color:var(--muted);
-      font-size:10px;
-      line-height:1.5;
-    }
-
-    .home-foot{
-      color:var(--muted-2);
-      font-size:9px;
-      text-align:center;
-    }
-
-    /* Search results */
-
-    .results{
-      position:absolute;
-      inset:0;
-      display:none;
-      overflow:auto;
-      padding:30px 5vw 60px;
-    }
-
-    .results.visible{
-      display:block;
-    }
-
-    .results-inner{
-      width:min(820px,100%);
-      margin:0 auto;
-    }
-
-    .results-top{
+      padding:0 14px;
       display:flex;
       align-items:center;
       gap:8px;
-      margin-bottom:14px;
-    }
-
-    .results-query{
-      font-size:13px;
-      font-weight:650;
-    }
-
-    .results-meta{
-      color:var(--muted-2);
-      font-size:10px;
-    }
-
-    .result-card{
-      display:block;
-      padding:14px;
       border:1px solid var(--border);
-      border-radius:var(--radius);
-      background:rgba(12,12,15,.74);
-      margin-bottom:7px;
-      transition:
-        background-color .15s ease,
-        border-color .15s ease,
-        transform .15s var(--ease);
+      border-radius:7px;
+      background:var(--surface);
     }
+    .home-search-inner:focus-within{background:var(--surface-2);border-color:var(--border-strong)}
+    .home-search-inner input{min-width:0;flex:1;height:100%;background:none;border:0;font-size:14px}
+    .home-search-inner input::placeholder{color:var(--muted-2)}
 
-    .result-card:hover{
-      background:var(--surface-2);
-      border-color:var(--border-2);
-      transform:translateY(-1px);
-    }
+    .shortcuts{display:flex;justify-content:center;gap:5px;margin-top:12px;flex-wrap:wrap}
+    .shortcut{padding:6px 9px;border:1px solid var(--border);background:rgba(255,255,255,.02);border-radius:999px;color:var(--muted);font-size:9px}
+    .shortcut:hover{background:var(--surface-2);color:var(--text);border-color:var(--border-strong)}
 
-    .result-url{
-      color:#777780;
+    .warning{
+      width:max-content;
+      max-width:100%;
+      margin:19px auto 0;
+      display:flex;
+      align-items:center;
+      gap:7px;
+      color:var(--muted-2);
       font-size:9px;
-      margin-bottom:6px;
-      word-break:break-all;
     }
 
-    .result-title{
-      font-size:13px;
-      font-weight:650;
-      margin-bottom:5px;
-    }
+    .results{position:absolute;inset:0;display:none;overflow:auto;padding:26px 28px 50px;background:#000}
+    .results.visible{display:block}
+    .results-inner{width:min(820px,100%);margin:0 auto}
+    .results-header{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+    .results-query{font-size:13px;font-weight:650}
+    .results-meta{font-size:9px;color:var(--muted-2)}
+    .result{display:block;margin-bottom:7px;padding:13px;border:1px solid var(--border);border-radius:6px;background:rgba(12,12,15,.68)}
+    .result:hover{background:var(--surface-2);border-color:var(--border-strong)}
+    .result-url{font-size:9px;color:#777780;margin-bottom:5px;overflow-wrap:anywhere}
+    .result-title{font-size:13px;font-weight:650;margin-bottom:5px}
+    .result-desc{font-size:10px;line-height:1.55;color:var(--muted)}
+    .results-empty{padding:35px;text-align:center;color:var(--muted);font-size:10px}
 
-    .result-desc{
-      color:var(--muted);
-      font-size:11px;
-      line-height:1.55;
-    }
+    .web-view{position:absolute;inset:0;display:none;background:#fff}
+    .web-view.visible{display:block}
+    .frame{display:block;width:100%;height:100%;border:0;background:#fff}
+    .source{position:absolute;inset:0;display:none;overflow:auto;margin:0;padding:18px;background:#0c0d11;color:#b9f5c8;font:12px/1.55 Consolas,Monaco,SFMono-Regular,monospace;white-space:pre-wrap}
 
-    .result-loading,
-    .result-empty{
-      padding:35px;
-      text-align:center;
-      color:var(--muted);
-      font-size:11px;
-    }
+    .loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:10;background:rgba(0,0,0,.28);backdrop-filter:blur(5px)}
+    .loading.visible{display:flex}
+    .loading-ring{width:26px;height:26px;border:2px solid rgba(255,255,255,.12);border-top-color:#fff;border-radius:50%}
 
-    /* Toast */
-
-    .toast{
-      position:fixed;
-      right:18px;
-      bottom:18px;
-      z-index:1000;
-      max-width:360px;
-      padding:12px 14px;
-      border:1px solid var(--border-2);
-      background:rgba(18,18,22,.94);
-      backdrop-filter:blur(20px);
-      -webkit-backdrop-filter:blur(20px);
-      border-radius:var(--radius);
-      box-shadow:0 16px 50px rgba(0,0,0,.45);
-      color:var(--muted);
-      font-size:11px;
-      opacity:0;
-      pointer-events:none;
-      transform:translateY(8px);
-      transition:
-        opacity .2s ease,
-        transform .2s var(--ease);
-    }
-
-    .toast.visible{
-      opacity:1;
-      transform:translateY(0);
-    }
-
-    .toast strong{
-      color:var(--text);
-      display:block;
-      margin-bottom:3px;
-      font-size:11px;
-    }
+    .toast{position:fixed;right:14px;bottom:14px;z-index:100;max-width:340px;padding:11px 13px;border:1px solid var(--border-strong);background:rgba(20,20,24,.94);backdrop-filter:blur(18px);border-radius:6px;color:var(--muted);font-size:10px;box-shadow:0 16px 50px rgba(0,0,0,.45)}
+    .toast strong{display:block;color:var(--text);margin-bottom:3px}
 
     @media(max-width:760px){
-      .sidebar{
-        position:absolute;
-        top:0;
-        left:0;
-        bottom:0;
-        transform:translateX(-100%);
-        transition:transform .22s var(--ease);
-        width:240px;
-      }
-
-      .sidebar.mobile-open{
-        transform:translateX(0);
-      }
-
-      .toolbar{
-        padding-left:8px;
-      }
-
-      .mobile-menu{
-        display:inline-flex;
-      }
-
-      .home{
-        padding:1.2rem;
-      }
-
-      .logo{
-        font-size:48px;
-      }
-
-      .results{
-        padding:20px 15px 40px;
-      }
+      .sidebar{position:absolute;left:0;top:0;bottom:0;transform:translateX(-100%);transition:transform .24s var(--ease);box-shadow:15px 0 50px rgba(0,0,0,.35)}
+      .sidebar.mobile-open{transform:translateX(0)}
+      .mobile-menu{display:grid}
+      .logo{font-size:48px}
+      .home-inner{width:calc(100% - 24px)}
     }
-
-    @media(min-width:761px){
-      .mobile-menu{
-        display:none;
-      }
+    @media(min-width:761px){.mobile-menu{display:none}}
+    @media(prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
     }
   </style>
 </head>
-
 <body>
-<div id="app">
-
-  <div class="app">
-
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-inner">
-
-        <div class="sidebar-header">
-          <div class="header-left">
-
-            <button class="icon-btn" id="sideBack" aria-label="Back">
-              <svg viewBox="0 0 24 24">
-                <polyline points="15 18 9 12 15 6"></polyline>
-              </svg>
-            </button>
-
-            <button class="icon-btn" id="sideForward" aria-label="Forward">
-              <svg viewBox="0 0 24 24">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-
-            <button class="icon-btn" id="sideReload" aria-label="Reload">
-              <svg viewBox="0 0 24 24">
-                <polyline points="23 4 23 10 17 10"></polyline>
-                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-              </svg>
-            </button>
-
-          </div>
-
-          <div class="header-right">
-            <button class="icon-btn" id="collapseSidebar" aria-label="Collapse sidebar">
-              <svg viewBox="0 0 24 24">
-                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
-                <line x1="9" y1="4" x2="9" y2="20"></line>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="sidebar-compact-controls">
-          <button class="icon-btn" id="compactHome" title="New tab">
-            <svg viewBox="0 0 24 24">
-              <path d="M12 5v14M5 12h14"></path>
-            </svg>
-          </button>
-        </div>
-
-        <div class="brand">
-          <div class="brand-mark">PX</div>
-          <div class="brand-copy">
-            <div class="brand-name">PROXUS</div>
-            <div class="brand-sub">authorized proxy workspace</div>
-          </div>
-        </div>
-
-        <form class="sidebar-omnibox" id="sidebarForm">
-          <svg viewBox="0 0 24 24">
-            <circle cx="11" cy="11" r="7"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input id="sidebarInput" placeholder="Search or enter URL" autocomplete="off" spellcheck="false">
-        </form>
-
-        <div class="bookmarks-grid">
-          <button class="bookmark-tile" data-url="https://360-search.com" title="360 Search">
-            <span class="bookmark-letter">360</span>
-          </button>
-
-          <button class="bookmark-tile" data-url="https://github.com" title="GitHub">
-            <span class="bookmark-letter">GH</span>
-          </button>
-
-          <button class="bookmark-tile" data-url="https://developer.mozilla.org" title="MDN">
-            <span class="bookmark-letter">M</span>
-          </button>
-        </div>
-
-        <button class="new-tab" id="newTab">
-          <span class="tab-icon">
-            <svg viewBox="0 0 24 24">
-              <path d="M12 5v14M5 12h14"></path>
-            </svg>
-          </span>
-          <span class="tab-title">New tab</span>
-        </button>
-
-        <ul class="tab-list" id="tabList"></ul>
-
-        <div class="sidebar-bottom">
-          <button class="bottom-btn active" id="searchSection">
-            <span class="tab-icon">
-              <svg viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="7"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-            </span>
-            <span class="bottom-label">Search</span>
-          </button>
-
-          <button class="bottom-btn" id="settingsSection">
-            <span class="tab-icon">
-              <svg viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 4.3l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.09A1.65 1.65 0 0 0 20.91 10H21a2 2 0 0 1 0 4h-.09A1.65 1.65 0 0 0 19.4 15Z"></path>
-              </svg>
-            </span>
-            <span class="bottom-label">Settings</span>
-          </button>
-        </div>
-
-      </div>
-    </aside>
-
-    <main class="main">
-
-      <header class="toolbar">
-
-        <button class="icon-btn mobile-menu" id="mobileMenu" aria-label="Open sidebar">
-          <svg viewBox="0 0 24 24">
-            <path d="M4 6h16M4 12h16M4 18h16"></path>
-          </svg>
-        </button>
-
-        <div class="nav-group">
-
-          <button class="icon-btn" id="topBack" aria-label="Back">
-            <svg viewBox="0 0 24 24">
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-          </button>
-
-          <button class="icon-btn" id="topForward" aria-label="Forward">
-            <svg viewBox="0 0 24 24">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </button>
-
-          <button class="icon-btn" id="topReload" aria-label="Reload">
-            <svg viewBox="0 0 24 24">
-              <polyline points="23 4 23 10 17 10"></polyline>
-              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-            </svg>
-          </button>
-
-        </div>
-
-        <div class="omnibox-wrap">
-
-          <form class="omnibox" id="omniboxForm">
-
-            <svg viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="7"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-
-            <input
-              id="omniboxInput"
-              placeholder="Search or enter URL"
-              spellcheck="false"
-              autocomplete="off"
-            >
-
-            <button
-              type="button"
-              class="omnibox-star"
-              id="bookmarkCurrent"
-              aria-label="Bookmark current page"
-            >
-              <svg viewBox="0 0 24 24">
-                <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9L12 3Z"></path>
-              </svg>
-            </button>
-
-          </form>
-
-          <ul class="suggestions" id="suggestions"></ul>
-        </div>
-
-        <button class="icon-btn" id="newTabTop" aria-label="New tab">
-          <svg viewBox="0 0 24 24">
-            <path d="M12 5v14M5 12h14"></path>
-          </svg>
-        </button>
-
-      </header>
-
-      <section class="workspace">
-
-        <section class="home" id="home">
-
-          <div class="home-inner">
-
-            <div class="logo-wrap">
-              <h1 class="logo">PROXUS</h1>
-              <div class="logo-underline"></div>
-            </div>
-
-            <div class="tagline">
-              An authorized web proxy workspace powered by a familiar, compact interface.
-            </div>
-
-            <form class="home-search" id="homeForm">
-              <div class="home-search-box">
-
-                <svg viewBox="0 0 24 24">
-                  <circle cx="11" cy="11" r="7"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-
-                <input
-                  id="homeInput"
-                  placeholder="Search or enter URL"
-                  autocomplete="off"
-                  spellcheck="false"
-                >
-
-              </div>
-            </form>
-
-            <div class="home-actions">
-              <button class="home-chip" data-query="360 Search">360 Search</button>
-              <button class="home-chip" data-query="open source">Open source</button>
-              <button class="home-chip" data-query="web development">Web development</button>
-            </div>
-
-            <div class="warning">
-              <svg viewBox="0 0 24 24">
-                <path d="M12 3 4 6v5c0 5.2 3.4 8.7 8 10 4.6-1.3 8-4.8 8-10V6l-8-3Z"></path>
-                <path d="M12 8v4"></path>
-                <path d="M12 15h.01"></path>
-              </svg>
-
-              <div>
-                <div class="warning-title">PROXUS is not a bypass service.</div>
-                <div class="warning-copy">
-                  Use PROXUS only for content and networks you are authorized to access.
-                  It is not intended to bypass school, workplace, network, geographic,
-                  paywall, authentication, age, or other access restrictions.
-                </div>
-              </div>
-            </div>
-
-            <div class="home-foot">
-              Search suggestions and results use 360 Search.
-            </div>
-
-          </div>
-        </section>
-
-        <section class="results" id="results">
-
-          <div class="results-inner">
-
-            <div class="results-top">
-              <span class="results-query" id="resultsQuery">Search</span>
-              <span class="results-meta" id="resultsMeta"></span>
-            </div>
-
-            <div id="resultsBody"></div>
-
-          </div>
-
-        </section>
-
-        <!--
-          PROXUS proxy frame.
-
-          The original Lucide build uses a service-worker-backed
-          Scramjet-style proxy under /~/sj/.
-
-          Keep the route on your own authorized backend:
-            /~/sj/<encoded-target-url>
-
-          This HTML intentionally does NOT implement cover/panic/escape
-          behavior or hidden redirects.
-        -->
-        <iframe
-          class="web-frame"
-          id="webFrame"
-          title="PROXUS web view"
-          referrerpolicy="no-referrer"
-          allowfullscreen
-        ></iframe>
-
-      </section>
-    </main>
-
-    <div class="toast" id="toast"></div>
-
-  </div>
-</div>
-
-<script>
-  /*
-    360 Search API used by PROXUS.
-
-    The search UI sends:
-      q
-      tab
-      page
-      safe
-
-    Change this constant if your deployed 360 Search endpoint differs.
-  */
-  const SEARCH_API =
-    "https://wiswfpfsjiowtrdyqpxy.supabase.co/functions/v1/search";
-
-  /*
-    Your authorized PROXUS proxy backend.
-
-    The original Lucide build's runtime uses /~/sj/ as the
-    Scramjet-style proxy prefix.
-
-    Your deployment must actually provide this route/service worker.
-  */
-  const PROXY_PREFIX = "/~/sj/";
-
-  const state = {
-    tabs: [],
-    activeTab: null,
-    collapsed: false,
-    safe: true,
-    bookmark: false,
-    suggestionIndex: -1,
-    searchTimer: null
+<div id="root"></div>
+
+<script type="module">
+
+  import React, {useEffect, useMemo, useRef, useState} from "react";
+  import {createRoot} from "react-dom/client";
+  import {motion, useMotionValue, useSpring} from "motion/react";
+
+  const {createElement: h} = React;
+
+  const SEARCH_API = "https://wiswfpfsjiowtrdyqpxy.supabase.co/functions/v1/search";
+  const SUPABASE_PROXY = "https://wiswfpfsjiowtrdyqpxy.supabase.co/functions/v1/web-viewer";
+
+  const iconPaths = {
+    search: h("g", null, h("circle", {cx:11, cy:11, r:7}), h("line", {x1:21, y1:21, x2:16.65, y2:16.65})),
+    back: h("polyline", {points:"15 18 9 12 15 6"}),
+    forward: h("polyline", {points:"9 18 15 12 9 6"}),
+    reload: h("g", null, h("polyline", {points:"23 4 23 10 17 10"}), h("path", {d:"M20.49 15a9 9 0 1 1-2.12-9.36L23 10"})),
+    plus: h("path", {d:"M12 5v14M5 12h14"}),
+    close: h("path", {d:"M6 6l12 12M18 6 6 18"}),
+    star: h("path", {d:"m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9L12 3Z"}),
+    globe: h("g", null, h("circle", {cx:12, cy:12, r:8}), h("path", {d:"M4 12h16"}), h("path", {d:"M12 4a12 12 0 0 1 0 16"})),
+    panel: h("g", null, h("rect", {x:3,y:4,width:18,height:16,rx:2}), h("line", {x1:9,y1:4,x2:9,y2:20})),
+    info: h("g", null, h("circle", {cx:12,cy:12,r:9}), h("path", {d:"M12 10v6"}), h("path", {d:"M12 7h.01"})),
+    shield: h("g", null, h("path", {d:"M12 3 4 6v5c0 5 3 8 8 10 5-2 8-5 8-10V6z"})),
+    external: h("g", null, h("path", {d:"M14 4h6v6"}), h("path", {d:"m20 4-9 9"}), h("path", {d:"M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"}))
   };
 
-  const els = {
-    sidebar: document.getElementById("sidebar"),
-    tabList: document.getElementById("tabList"),
-    home: document.getElementById("home"),
-    results: document.getElementById("results"),
-    resultsBody: document.getElementById("resultsBody"),
-    resultsQuery: document.getElementById("resultsQuery"),
-    resultsMeta: document.getElementById("resultsMeta"),
-    webFrame: document.getElementById("webFrame"),
-    omnibox: document.getElementById("omniboxInput"),
-    homeInput: document.getElementById("homeInput"),
-    sidebarInput: document.getElementById("sidebarInput"),
-    suggestions: document.getElementById("suggestions"),
-    bookmarkCurrent: document.getElementById("bookmarkCurrent"),
-    toast: document.getElementById("toast")
-  };
-
-  function id() {
-    return "tab-" +
-      Date.now().toString(36) +
-      "-" +
-      Math.random().toString(36).slice(2, 8);
+  function Icon({name,size=16,className=""}){
+    return h("svg", {viewBox:"0 0 24 24", width:size, height:size, className, "aria-hidden":"true", stroke:"currentColor", fill:"none", strokeWidth:"1.7", strokeLinecap:"round", strokeLinejoin:"round"}, iconPaths[name]);
   }
 
-  function escapeHTML(value) {
-    return String(value ?? "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
+  function Dust(){
+    const ref = useRef(null);
+    const px = useMotionValue(0);
+    const py = useMotionValue(0);
+    const sx = useSpring(px,{stiffness:50,damping:18,mass:.6});
+    const sy = useSpring(py,{stiffness:50,damping:18,mass:.6});
+
+    useEffect(()=>{
+      const canvas = ref.current;
+      const ctx = canvas.getContext("2d");
+      let width = 0, height = 0, dpr = 1, raf = 0;
+      let particles = [];
+
+      const resize=()=>{
+        width=innerWidth;
+        height=innerHeight;
+        dpr=Math.min(devicePixelRatio||1,2);
+        canvas.width=width*dpr;
+        canvas.height=height*dpr;
+        canvas.style.width=width+"px";
+        canvas.style.height=height+"px";
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+        const count=Math.min(84,Math.max(30,Math.floor(width*height/16500)));
+        particles=Array.from({length:count},()=>({
+          x:Math.random()*width,
+          y:Math.random()*height,
+          z:.15+Math.random()*.85,
+          size:.35+Math.random()*.75,
+          speed:.028+Math.random()*.12,
+          drift:(Math.random()-.5)*.025,
+          phase:Math.random()*Math.PI*2
+        }));
+      };
+
+      const tick=(time)=>{
+        ctx.clearRect(0,0,width,height);
+        const ox=sx.get(), oy=sy.get();
+        for(const p of particles){
+          p.phase += .0017;
+          p.y += p.speed;
+          p.x += p.drift + Math.sin(p.phase)*.006;
+          if(p.y>height+4){p.y=-4;p.x=Math.random()*width}
+          if(p.x<-4)p.x=width+4;
+          if(p.x>width+4)p.x=-4;
+          const x=p.x+ox*p.z*.1;
+          const y=p.y+oy*p.z*.1;
+          ctx.beginPath();
+          ctx.arc(x,y,p.size*p.z,0,Math.PI*2);
+          ctx.fillStyle=`rgba(255,255,255,${.025+p.z*.065})`;
+          ctx.fill();
+        }
+        raf=requestAnimationFrame(tick);
+      };
+
+      const move=(e)=>{
+        px.set((e.clientX-width/2)*-.16);
+        py.set((e.clientY-height/2)*-.10);
+      };
+
+      resize();
+      addEventListener("resize",resize);
+      addEventListener("pointermove",move,{passive:true});
+      raf=requestAnimationFrame(tick);
+
+      return()=>{
+        cancelAnimationFrame(raf);
+        removeEventListener("resize",resize);
+        removeEventListener("pointermove",move);
+      };
+    },[]);
+
+    return h("canvas",{ref,className:"dust","aria-hidden":"true"});
   }
 
-  function normalizeUrl(input) {
-    const value = input.trim();
+  function useStorage(key,fallback){
+    const [value,setValue]=useState(()=>{
+      try{return JSON.parse(localStorage.getItem(key)) ?? fallback}catch{return fallback}
+    });
+    useEffect(()=>{
+      try{localStorage.setItem(key,JSON.stringify(value))}catch{}
+    },[key,value]);
+    return [value,setValue];
+  }
 
-    if (!value) return "";
-
-    if (/^https?:\/\//i.test(value)) {
-      return value;
-    }
-
-    if (/^[^\s.]+\.[^\s.]{2,}(\/.*)?$/i.test(value)) {
-      return "https://" + value;
-    }
-
+  function normalizeUrl(raw){
+    let value=String(raw||"").trim();
+    if(!value)return "";
+    if(/^https?:\/\//i.test(value))return value;
+    if(/^[a-z0-9-]+(\.[a-z0-9-]+)+(\/.*)?$/i.test(value))return "https://"+value;
     return "";
   }
 
-  function buildProxyUrl(target) {
-    return PROXY_PREFIX + encodeURIComponent(target);
+  function proxify(url){
+    return SUPABASE_PROXY+"?url="+encodeURIComponent(url);
   }
 
-  function currentTab() {
-    return state.tabs.find(tab => tab.id === state.activeTab) || null;
-  }
+  function App(){
+    const [tabs,setTabs]=useStorage("proxus-tabs",[{id:"home",title:"New Tab",url:"",history:[],historyIndex:-1}]);
+    const [activeId,setActiveId]=useStorage("proxus-active","home");
+    const [bookmarks,setBookmarks]=useStorage("proxus-bookmarks",[]);
+    const [collapsed,setCollapsed]=useStorage("proxus-collapsed",false);
+    const [mobileOpen,setMobileOpen]=useState(false);
+    const [homeQuery,setHomeQuery]=useState("");
+    const [query,setQuery]=useState("");
+    const [results,setResults]=useState([]);
+    const [showResults,setShowResults]=useState(false);
+    const [loading,setLoading]=useState(false);
+    const [currentUrl,setCurrentUrl]=useState("");
+    const [rawHtml,setRawHtml]=useState("");
+    const [sourceMode,setSourceMode]=useState(false);
+    const [suggestions,setSuggestions]=useState([]);
+    const [suggestionIndex,setSuggestionIndex]=useState(-1);
+    const [toast,setToast]=useState(null);
+    const frameRef=useRef(null);
+    const suggestTimer=useRef(null);
 
-  function showToast(title, message) {
-    els.toast.innerHTML = `
-      <strong>${escapeHTML(title)}</strong>
-      ${escapeHTML(message)}
-    `;
+    const activeTab=useMemo(()=>tabs.find(t=>t.id===activeId)||tabs[0],[tabs,activeId]);
+    const currentTab=()=>activeTab;
 
-    els.toast.classList.add("visible");
-
-    clearTimeout(showToast.timer);
-
-    showToast.timer = setTimeout(() => {
-      els.toast.classList.remove("visible");
-    }, 3200);
-  }
-
-  function syncInputs(value) {
-    els.omnibox.value = value || "";
-    els.homeInput.value = value || "";
-    els.sidebarInput.value = value || "";
-  }
-
-  function saveTabs() {
-    localStorage.setItem(
-      "pro-xus-tabs",
-      JSON.stringify({
-        tabs: state.tabs,
-        activeTab: state.activeTab
-      })
-    );
-  }
-
-  function loadTabs() {
-    try {
-      const raw = JSON.parse(localStorage.getItem("pro-xus-tabs") || "null");
-
-      if (
-        raw &&
-        Array.isArray(raw.tabs) &&
-        raw.tabs.length &&
-        typeof raw.activeTab === "string"
-      ) {
-        state.tabs = raw.tabs;
-        state.activeTab =
-          state.tabs.some(tab => tab.id === raw.activeTab)
-            ? raw.activeTab
-            : state.tabs[0].id;
-        return;
-      }
-    } catch {}
-
-    createTab();
-  }
-
-  function createTab(url = "") {
-    const tab = {
-      id: id(),
-      title: url ? "Loading…" : "New Tab",
-      url
+    const showToast=(title,message)=>{
+      setToast({title,message});
+      setTimeout(()=>setToast(null),2800);
     };
 
-    state.tabs.push(tab);
-    state.activeTab = tab.id;
+    const setUrl=(url)=>{
+      setCurrentUrl(url);
+      setQuery(url);
+      setHomeQuery(url);
+    };
 
-    saveTabs();
-    renderTabs();
+    const updateTab=(url,title,targetTabId=activeId)=>{
+      setTabs(prev=>prev.map(t=>t.id===targetTabId?{...t,url,title:title||t.title||"New Tab"}:t));
+    };
 
-    if (url) {
-      loadProxy(url);
-    } else {
-      showHome();
-    }
-  }
+    const showHome=(targetTabId=activeId)=>{
+      setShowResults(false);
+      setSourceMode(false);
+      setCurrentUrl("");
+      setQuery("");
+      setHomeQuery("");
+      setTabs(prev=>prev.map(t=>t.id===targetTabId?{...t,url:"",title:"New Tab",history:[],historyIndex:-1}:t));
+    };
 
-  function closeTab(tabId) {
-    const index = state.tabs.findIndex(tab => tab.id === tabId);
-
-    if (index < 0) return;
-
-    state.tabs.splice(index, 1);
-
-    if (!state.tabs.length) {
-      createTab();
-      return;
-    }
-
-    if (state.activeTab === tabId) {
-      const next =
-        state.tabs[Math.max(0, index - 1)] ||
-        state.tabs[0];
-
-      state.activeTab = next.id;
-
-      saveTabs();
-      renderTabs();
-      activateTab(next);
-    } else {
-      saveTabs();
-      renderTabs();
-    }
-  }
-
-  function activateTab(tab) {
-    state.activeTab = tab.id;
-
-    saveTabs();
-    renderTabs();
-
-    syncInputs(tab.url);
-
-    if (tab.url) {
-      loadProxy(tab.url, false);
-    } else {
-      showHome();
-    }
-  }
-
-  function renderTabs() {
-    els.tabList.innerHTML = "";
-
-    for (const tab of state.tabs) {
-      const item = document.createElement("li");
-
-      item.className =
-        "tab-item" +
-        (tab.id === state.activeTab ? " active" : "");
-
-      item.innerHTML = `
-        <span class="tab-icon">
-          ${
-            tab.url
-              ? `
-                <svg viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="8"></circle>
-                  <path d="M4 12h16"></path>
-                  <path d="M12 4a12 12 0 0 1 0 16"></path>
-                  <path d="M12 4a12 12 0 0 0 0 16"></path>
-                </svg>
-              `
-              : `
-                <svg viewBox="0 0 24 24">
-                  <path d="M12 5v14M5 12h14"></path>
-                </svg>
-              `
-          }
-        </span>
-
-        <span class="tab-title">
-          ${escapeHTML(tab.title || (tab.url || "New Tab"))}
-        </span>
-
-        <button class="tab-close" type="button" aria-label="Close tab">
-          <svg viewBox="0 0 24 24" width="13" height="13">
-            <path d="m6 6 12 12M18 6 6 18"></path>
-          </svg>
-        </button>
-      `;
-
-      item.addEventListener("click", event => {
-        if (event.target.closest(".tab-close")) return;
-        activateTab(tab);
-      });
-
-      item
-        .querySelector(".tab-close")
-        .addEventListener("click", event => {
-          event.stopPropagation();
-          closeTab(tab.id);
-        });
-
-      els.tabList.appendChild(item);
-    }
-  }
-
-  function showHome() {
-    els.home.style.display = "flex";
-    els.results.classList.remove("visible");
-    els.webFrame.classList.remove("visible");
-    els.webFrame.removeAttribute("src");
-
-    const tab = currentTab();
-
-    if (tab) {
-      tab.url = "";
-      tab.title = "New Tab";
-    }
-
-    syncInputs("");
-
-    saveTabs();
-    renderTabs();
-  }
-
-  function showResults(query) {
-    els.home.style.display = "none";
-    els.webFrame.classList.remove("visible");
-    els.webFrame.removeAttribute("src");
-    els.results.classList.add("visible");
-
-    els.resultsQuery.textContent = query;
-    els.resultsMeta.textContent = "360 Search";
-  }
-
-  function navigate(url) {
-    const normalized = normalizeUrl(url);
-
-    if (normalized) {
-      loadProxy(normalized);
-      return;
-    }
-
-    search360(url);
-  }
-
-  function loadProxy(url, pushHistory = true) {
-    const tab = currentTab();
-    if (!tab) return;
-
-    tab.url = url;
-    tab.title = new URL(url).hostname;
-
-    syncInputs(url);
-
-    els.home.style.display = "none";
-    els.results.classList.remove("visible");
-    els.webFrame.classList.add("visible");
-
-    /*
-      This is deliberately a normal authorized proxy route.
-
-      It does not contain any cover/panic redirect,
-      hidden escape key, or disguise logic.
-    */
-    els.webFrame.src = buildProxyUrl(url);
-
-    saveTabs();
-    renderTabs();
-
-    if (pushHistory) {
-      try {
-        history.pushState(
-          { proxus: true, url },
-          "",
-          "#/" + encodeURIComponent(url)
-        );
-      } catch {}
-    }
-  }
-
-  function updateTabTitle(title) {
-    const tab = currentTab();
-    if (!tab) return;
-
-    if (typeof title === "string" && title.trim()) {
-      tab.title = title.trim().slice(0, 80);
-      renderTabs();
-      saveTabs();
-    }
-  }
-
-  async function search360(query) {
-    const q = query.trim();
-
-    if (!q) return;
-
-    closeSuggestions();
-
-    showResults(q);
-
-    els.resultsBody.innerHTML = `
-      <div class="result-loading">
-        Searching 360 Search…
-      </div>
-    `;
-
-    try {
-      const response = await fetch(SEARCH_API, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          q,
-          tab: "web",
-          page: 1,
-          safe: state.safe
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error("Search request failed");
+    const fetchPage=async(url,method="get",pushHistory=true,targetTabId=activeId)=>{
+      setLoading(true);
+      try{
+        const response=await fetch(proxify(url),{method:method==="post"?"POST":"GET"});
+        if(!response.ok)throw new Error("Server responded with "+response.status);
+        const html=await response.text();
+        const finalUrl=response.headers.get("X-Final-Url")||url;
+        if(pushHistory){
+          setTabs(prev=>prev.map(t=>{
+            if(t.id!==targetTabId)return t;
+            const history=Array.isArray(t.history)?t.history:[];
+            const index=Number.isInteger(t.historyIndex)?t.historyIndex:-1;
+            const nextHistory=history.slice(0,index+1);
+            if(nextHistory[nextHistory.length-1]!==finalUrl)nextHistory.push(finalUrl);
+            return {...t,history:nextHistory,historyIndex:nextHistory.length-1};
+          }));
+        }
+        setRawHtml(html);
+        setUrl(finalUrl);
+        let title="";
+        try{title=(new URL(finalUrl)).hostname}catch{}
+        updateTab(finalUrl,title,targetTabId);
+        setShowResults(false);
+        if(frameRef.current)frameRef.current.srcdoc=html;
+      }catch(err){
+        showToast("Could not load page",err.message);
+      }finally{
+        setLoading(false);
       }
+    };
 
-      const data = await response.json();
-      const results = Array.isArray(data.web)
-        ? data.web
-        : [];
-
-      els.resultsMeta.textContent =
-        `${results.length} results · 360 Search`;
-
-      if (!results.length) {
-        els.resultsBody.innerHTML = `
-          <div class="result-empty">
-            No results found.
-          </div>
-        `;
+    const navigate=(value)=>{
+      const raw=String(value||"").trim();
+      if(!raw)return;
+      setSuggestions([]);
+      setSuggestionIndex(-1);
+      const url=normalizeUrl(raw);
+      if(url){
+        fetchPage(url);
         return;
       }
+      search(raw);
+    };
 
-      els.resultsBody.innerHTML = results.map(result => `
-        <a
-          class="result-card"
-          href="${escapeHTML(result.url || "#")}"
-          data-proxy-url="${escapeHTML(result.url || "")}"
-        >
-          <div class="result-url">
-            ${escapeHTML(result.url || "")}
-          </div>
-
-          <div class="result-title">
-            ${escapeHTML(result.title || result.url || "Untitled")}
-          </div>
-
-          <div class="result-desc">
-            ${escapeHTML(result.desc || result.description || "")}
-          </div>
-        </a>
-      `).join("");
-
-      els.resultsBody.querySelectorAll(".result-card").forEach(card => {
-        card.addEventListener("click", event => {
-          const url = card.dataset.proxyUrl;
-
-          if (!url) return;
-
-          event.preventDefault();
-          navigate(url);
+    const search=async(q)=>{
+      const value=String(q||"").trim();
+      if(!value)return;
+      setLoading(true);
+      setShowResults(true);
+      setQuery(value);
+      setResults([]);
+      try{
+        const response=await fetch(SEARCH_API,{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({q:value,tab:"web",page:1,safe:true})
         });
-      });
+        if(!response.ok)throw new Error("Search request failed");
+        const data=await response.json();
+        setResults(Array.isArray(data.web)?data.web:[]);
+      }catch(err){
+        showToast("Search unavailable",err.message);
+      }finally{
+        setLoading(false);
+      }
+    };
 
-    } catch (error) {
-      console.error(error);
-
-      els.resultsBody.innerHTML = `
-        <div class="result-empty">
-          360 Search could not be reached.
-        </div>
-      `;
-    }
-  }
-
-  async function fetchSuggestions(query) {
-    const q = query.trim();
-
-    if (q.length < 2) {
-      closeSuggestions();
-      return;
-    }
-
-    clearTimeout(state.searchTimer);
-
-    state.searchTimer = setTimeout(async () => {
-      try {
-        const response = await fetch(SEARCH_API, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            q,
-            tab: "web",
-            page: 1,
-            safe: state.safe
-          })
-        });
-
-        if (!response.ok) return;
-
-        const data = await response.json();
-
-        const results = Array.isArray(data.web)
-          ? data.web.slice(0,5)
-          : [];
-
-        state.suggestionIndex = -1;
-
-        els.suggestions.innerHTML = results.map(result => `
-          <li
-            class="suggestion"
-            data-url="${escapeHTML(result.url || "")}"
-          >
-            <svg viewBox="0 0 24 24" width="14" height="14">
-              <circle cx="11" cy="11" r="7"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-
-            <span>
-              ${escapeHTML(result.title || result.url || q)}
-            </span>
-
-            <span class="suggestion-type">
-              WEB
-            </span>
-          </li>
-        `).join("");
-
-        els.suggestions
-          .querySelectorAll(".suggestion")
-          .forEach(item => {
-            item.addEventListener("mousedown", event => {
-              event.preventDefault();
-              navigate(item.dataset.url);
-            });
+    useEffect(()=>{
+      if(!query||query.length<2||normalizeUrl(query)){setSuggestions([]);setSuggestionIndex(-1);return}
+      clearTimeout(suggestTimer.current);
+      suggestTimer.current=setTimeout(async()=>{
+        try{
+          const response=await fetch(SEARCH_API,{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({q:query,tab:"web",page:1,safe:true})
           });
+          if(!response.ok)return;
+          const data=await response.json();
+          setSuggestions(Array.isArray(data.web)?data.web.slice(0,5):[]);
+          setSuggestionIndex(-1);
+        }catch{}
+      },180);
+      return()=>clearTimeout(suggestTimer.current);
+    },[query]);
 
-        if (results.length) {
-          els.suggestions.classList.add("visible");
-        } else {
-          closeSuggestions();
+    const createTab=()=>{
+      const tab={id:(crypto.randomUUID ? crypto.randomUUID() : "px-"+Date.now().toString(36)+Math.random().toString(36).slice(2,8)),title:"New Tab",url:"",history:[],historyIndex:-1};
+      setTabs(prev=>[...prev,tab]);
+      setActiveId(tab.id);
+      setCurrentUrl("");
+      setQuery("");
+      setHomeQuery("");
+      setShowResults(false);
+      setMobileOpen(false);
+    };
+
+    const closeTab=(id)=>{
+      if(tabs.length<=1){
+        showHome();
+        return;
+      }
+      const index=tabs.findIndex(t=>t.id===id);
+      const next=tabs[index+1]||tabs[index-1];
+      setTabs(prev=>prev.filter(t=>t.id!==id));
+      if(id===activeId){
+        setActiveId(next.id);
+        if(next.url)fetchPage(next.url,"get",false,next.id);else showHome(next.id);
+      }
+    };
+
+    const goTab=(tab)=>{
+      setActiveId(tab.id);
+      if(tab.url)fetchPage(tab.url,"get",false,tab.id);else showHome(tab.id);
+      setMobileOpen(false);
+    };
+
+    const goHistory=(direction)=>{
+      const tab=currentTab();
+      if(!tab)return;
+      const history=Array.isArray(tab.history)?tab.history:[];
+      let index=Number.isInteger(tab.historyIndex)?tab.historyIndex:-1;
+      const next=index+direction;
+      if(next<0||next>=history.length)return;
+      const target=history[next];
+      setTabs(prev=>prev.map(t=>t.id===activeId?{...t,historyIndex:next}:t));
+      fetchPage(target,"get",false);
+    };
+
+    const reload=()=>{
+      if(currentUrl)fetchPage(currentUrl,"get",false);
+    };
+
+    const toggleBookmark=()=>{
+      if(!currentUrl)return showToast("Nothing to bookmark","Open a page first.");
+      const exists=bookmarks.some(b=>b.url===currentUrl);
+      if(exists){
+        setBookmarks(bookmarks.filter(b=>b.url!==currentUrl));
+        showToast("Bookmark removed",currentUrl);
+      }else{
+        setBookmarks([...bookmarks,{url:currentUrl,title:activeTab?.title||currentUrl}]);
+        showToast("Bookmark saved",currentUrl);
+      }
+    };
+
+    useEffect(()=>{
+      const onMessage=(event)=>{
+        if(frameRef.current && event.source !== frameRef.current.contentWindow)return;
+        const data=event.data;
+        if(!data||typeof data!=="object")return;
+        if(data.type==="360-navigate"&&data.url)fetchPage(data.url,data.method);
+        if(data.type==="360-meta"&&data.url){
+          setUrl(data.url);
+          setTabs(prev=>prev.map(t=>{
+            if(t.id!==activeId)return t;
+            const history=Array.isArray(t.history)?t.history:[];
+            const index=Number.isInteger(t.historyIndex)?t.historyIndex:-1;
+            const current=history[index];
+            if(current===data.url)return {...t,url:data.url};
+            const nextHistory=history.slice(0,index+1);
+            nextHistory.push(data.url);
+            return {...t,url:data.url,history:nextHistory,historyIndex:nextHistory.length-1};
+          }));
         }
+        if(data.type==="360-alert"&&typeof data.msg==="string")alert(data.msg);
+        if(data.type==="360-confirm"&&typeof data.msg==="string")confirm(data.msg);
+        if(data.type==="360-prompt"&&typeof data.msg==="string")prompt(data.msg,data.def);
+      };
+      addEventListener("message",onMessage);
+      return()=>removeEventListener("message",onMessage);
+    },[activeId,activeTab?.title]);
 
-      } catch {}
-    }, 180);
-  }
-
-  function closeSuggestions() {
-    els.suggestions.classList.remove("visible");
-    els.suggestions.innerHTML = "";
-    state.suggestionIndex = -1;
-  }
-
-  function submitInput(value) {
-    const q = value.trim();
-
-    if (!q) return;
-
-    const url = normalizeUrl(q);
-
-    closeSuggestions();
-
-    if (url) {
-      navigate(url);
-    } else {
-      search360(q);
-    }
-  }
-
-  function goBack() {
-    try {
-      els.webFrame.contentWindow.history.back();
-    } catch {
-      window.history.back();
-    }
-  }
-
-  function goForward() {
-    try {
-      els.webFrame.contentWindow.history.forward();
-    } catch {
-      window.history.forward();
-    }
-  }
-
-  function reloadCurrent() {
-    try {
-      if (els.webFrame.classList.contains("visible")) {
-        els.webFrame.contentWindow.location.reload();
-      } else {
-        window.location.reload();
+    useEffect(()=>{
+      if(!tabs.length){
+        const tab={id:(crypto.randomUUID ? crypto.randomUUID() : "px-"+Date.now().toString(36)+Math.random().toString(36).slice(2,8)),title:"New Tab",url:"",history:[],historyIndex:-1};
+        setTabs([tab]);
+        setActiveId(tab.id);
+        return;
       }
-    } catch {
-      window.location.reload();
-    }
-  }
+      if(!tabs.some(t=>t.id===activeId))setActiveId(tabs[0].id);
+    },[]);
 
-  function toggleBookmark() {
-    const tab = currentTab();
+    const initialLoadRef=useRef(false);
+    useEffect(()=>{
+      if(initialLoadRef.current)return;
+      initialLoadRef.current=true;
+      if(activeTab?.url)fetchPage(activeTab.url,"get",false,activeTab.id);
+    },[]);
 
-    if (!tab || !tab.url) {
-      showToast(
-        "No page open",
-        "Open a page before bookmarking it."
-      );
-      return;
-    }
+    const submitHome=(e)=>{e.preventDefault();navigate(homeQuery)};
+    const submitOmni=(e)=>{e.preventDefault();navigate(query)};
 
-    const bookmarks =
-      JSON.parse(localStorage.getItem("proxus-bookmarks") || "[]");
+    const activeBookmarked=bookmarks.some(b=>b.url===currentUrl);
 
-    const index =
-      bookmarks.findIndex(bookmark => bookmark.url === tab.url);
-
-    if (index >= 0) {
-      bookmarks.splice(index, 1);
-      state.bookmark = false;
-
-      showToast(
-        "Bookmark removed",
-        tab.title
-      );
-    } else {
-      bookmarks.push({
-        url: tab.url,
-        title: tab.title
-      });
-
-      state.bookmark = true;
-
-      showToast(
-        "Bookmark saved",
-        tab.title
-      );
-    }
-
-    localStorage.setItem(
-      "proxus-bookmarks",
-      JSON.stringify(bookmarks)
+    const sidebarNode = h(
+      motion.aside,
+      {
+        className: "sidebar" + (mobileOpen ? " mobile-open" : ""),
+        animate: {width: collapsed ? 56 : 240},
+        transition: {type:"spring", stiffness:280, damping:28, mass:.72}
+      },
+      h("div", {className:"sidebar-inner"},
+        h("div", {className:"brand"},
+          h(motion.div, {
+            className:"brand-mark",
+            whileHover:{rotate:-4,scale:1.04},
+            whileTap:{scale:.95}
+          }, "PX"),
+          !collapsed && h(motion.div, {
+            className:"brand-copy",
+            initial:{opacity:0,x:-7},
+            animate:{opacity:1,x:0},
+            exit:{opacity:0,x:-7},
+            transition:{type:"spring",stiffness:380,damping:28}
+          },
+            h("div", {className:"brand-name"}, "PROXUS"),
+          )
+        ),
+        !collapsed && h("form", {
+          className:"side-search",
+          onSubmit:e=>{e.preventDefault();navigate(query)}
+        },
+          h(Icon, {name:"search",size:14}),
+          h("input", {value:query,onChange:e=>setQuery(e.target.value),placeholder:"Search or enter URL"})
+        ),
+        !collapsed && h("div", {className:"bookmarks"},
+          [
+            ["360","https://360-search.com"],
+            ["GitHub","https://github.com"],
+            ["MDN","https://developer.mozilla.org"]
+          ].map(([label,url])=>
+            h(motion.button, {
+              key:label,
+              className:"bookmark",
+              whileHover:{y:-1,scale:1.015},
+              whileTap:{scale:.97},
+              onClick:()=>fetchPage(url)
+            }, label)
+          )
+        ),
+        h(motion.button, {
+          className:"new-tab",
+          onClick:createTab,
+          whileHover:{x:2},
+          whileTap:{scale:.98}
+        },
+          h(Icon,{name:"plus",size:15}),
+          !collapsed && h("span",null,"New tab")
+        ),
+        h("ul", {className:"tab-list"},
+          tabs.map(tab=>
+            h(motion.li, {
+              key:tab.id,
+              className:"tab"+(tab.id===activeId?" active":""),
+              onClick:()=>goTab(tab),
+              layout:true,
+              whileHover:{x:2},
+              transition:{type:"spring",stiffness:400,damping:28}
+            },
+              tab.id===activeId && h(motion.div, {
+                className:"tab-highlight",
+                layoutId:"tab-highlight",
+                transition:{type:"spring",stiffness:420,damping:32}
+              }),
+              h(Icon,{name:tab.url?"globe":"plus",size:14}),
+              !collapsed && h("span",{className:"tab-title"},tab.title),
+              !collapsed && h("button", {
+                className:"tab-close",
+                onClick:e=>{e.stopPropagation();closeTab(tab.id)}
+              }, h(Icon,{name:"close",size:12}))
+            )
+          )
+        ),
+        h("div", {className:"side-bottom"},
+          h(motion.button, {
+            className:"side-button",
+            whileHover:{x:2},
+            onClick:()=>setCollapsed(v=>!v)
+          },
+            h(Icon,{name:"panel",size:15}),
+            !collapsed && h("span",null,"Collapse")
+          ),
+          !collapsed && h(motion.button, {
+            className:"side-button",
+            whileHover:{x:2},
+            onClick:()=>showToast("PROXUS","Authorized access only.")
+          },
+            h(Icon,{name:"info",size:15}),
+            h("span",null,"About")
+          )
+        )
+      )
     );
 
-    els.bookmarkCurrent.classList.toggle(
-      "saved",
-      state.bookmark
+    const toolbarNode = h(
+      "header",
+      {className:"toolbar"},
+      h(motion.button, {
+        className:"icon-button mobile-menu",
+        whileTap:{scale:.9},
+        onClick:()=>setMobileOpen(v=>!v)
+      },
+        h("svg", {viewBox:"0 0 24 24",width:16,height:16,stroke:"currentColor",fill:"none",strokeWidth:1.7,strokeLinecap:"round"},
+          h("path", {d:"M4 6h16M4 12h16M4 18h16"})
+        )
+      ),
+      h("div", {className:"toolbar-actions"},
+        h(motion.button,{className:"icon-button",disabled:!(currentTab()?.historyIndex>0),onClick:()=>goHistory(-1),whileTap:{scale:.9}},h(Icon,{name:"back"})),
+        h(motion.button,{className:"icon-button",disabled:!((currentTab()?.historyIndex??-1)<((currentTab()?.history?.length??0)-1)),onClick:()=>goHistory(1),whileTap:{scale:.9}},h(Icon,{name:"forward"})),
+        h(motion.button,{className:"icon-button",onClick:reload,whileTap:{scale:.9}},h(Icon,{name:"reload"}))
+      ),
+      h("div", {className:"omnibox-wrap"},
+        h("form", {className:"omnibox",onSubmit:submitOmni},
+          h(Icon,{name:"search",size:14}),
+          h("input", {
+            value:query,
+            onChange:e=>setQuery(e.target.value),
+            placeholder:"Search or enter URL"
+          }),
+          h(motion.button, {
+            type:"button",
+            className:"star"+(activeBookmarked?" saved":""),
+            whileTap:{scale:.86,rotate:-8},
+            onClick:toggleBookmark
+          }, h(Icon,{name:"star",size:14}))
+        ),
+        suggestions.length>0 && h(motion.ul, {
+          className:"suggestions open",
+          initial:{opacity:0,y:-5,scale:.985},
+          animate:{opacity:1,y:0,scale:1},
+          exit:{opacity:0,y:-4,scale:.99},
+          transition:{type:"spring",stiffness:420,damping:30}
+        },
+          suggestions.map((item,i)=>
+            h(motion.li, {
+              key:item.url||i,
+              className:"suggestion"+(i===suggestionIndex?" selected":""),
+              onClick:()=>navigate(item.url),
+              whileHover:{x:2}
+            },
+              h(Icon,{name:"search",size:13}),
+              h("span",null,item.title||item.url),
+              h("span",{className:"suggestion-type"},"WEB")
+            )
+          )
+        )
+      ),
+      h(motion.button,{className:"icon-button",onClick:createTab,whileTap:{scale:.9}},h(Icon,{name:"plus"}))
+    );
+
+    const homeNode =
+      !showResults && !currentUrl && h(
+        motion.section,
+        {
+          className:"home",
+          initial:{opacity:0,scale:.985},
+          animate:{opacity:1,scale:1},
+          exit:{opacity:0,scale:.995},
+          transition:{duration:.28}
+        },
+        h("div",{className:"home-inner"},
+          h(motion.h1, {
+            className:"logo",
+            initial:{y:18,scale:.94,filter:"blur(5px)"},
+            animate:{y:0,scale:1,filter:"blur(0px)"},
+            transition:{type:"spring",stiffness:170,damping:18,mass:.72}
+          }, "PROXUS"),
+          h(motion.div, {
+            className:"logo-line",
+            initial:{scaleX:.02,opacity:.5},
+            animate:{scaleX:1,opacity:1},
+            transition:{type:"spring",stiffness:230,damping:22,mass:.6}
+          }),
+          h(motion.form, {
+            className:"home-search",
+            onSubmit:submitHome,
+            initial:{y:18,opacity:0},
+            animate:{y:0,opacity:1},
+            transition:{delay:.08,type:"spring",stiffness:180,damping:22}
+          },
+            h("div",{className:"home-search-inner"},
+              h(Icon,{name:"search",size:17}),
+              h("input",{
+                value:homeQuery,
+                onChange:e=>{setHomeQuery(e.target.value);setQuery(e.target.value)},
+                placeholder:"Search or enter URL",
+                autoComplete:"off"
+              })
+            )
+          ),
+          h("div",{className:"shortcuts"},
+            ["360 Search","Open source","Web development"].map((label,i)=>
+              h(motion.button, {
+                key:label,
+                className:"shortcut",
+                onClick:()=>{setHomeQuery(label);setQuery(label);search(label)},
+                initial:{y:10,opacity:0},
+                animate:{y:0,opacity:1},
+                transition:{delay:.16+i*.045,type:"spring",stiffness:260,damping:25},
+                whileHover:{y:-2,scale:1.015},
+                whileTap:{scale:.97}
+              }, label)
+            )
+          ),
+          h(motion.div, {
+            className:"warning",
+            initial:{y:8,opacity:0},
+            animate:{y:0,opacity:1},
+            transition:{delay:.28,type:"spring",stiffness:240,damping:26}
+          },
+            h(Icon,{name:"shield",size:13}),
+            h("span",null,"Not intended to bypass access restrictions.")
+          )
+        )
+      );
+
+    const resultsNode =
+      showResults && h(
+        motion.section,
+        {
+          className:"results visible",
+          initial:{opacity:0,y:8},
+          animate:{opacity:1,y:0},
+          exit:{opacity:0,y:-6},
+          transition:{type:"spring",stiffness:220,damping:24}
+        },
+        h("div",{className:"results-inner"},
+          h("div",{className:"results-header"},
+            h("span",{className:"results-query"},query),
+            h("span",{className:"results-meta"},results.length+" results · 360 Search")
+          ),
+          results.length
+            ? results.map((item,i)=>
+                h(motion.a, {
+                  key:item.url||i,
+                  className:"result",
+                  href:"#",
+                  onClick:e=>{e.preventDefault();navigate(item.url)},
+                  initial:{opacity:0,y:10},
+                  animate:{opacity:1,y:0},
+                  transition:{delay:Math.min(i*.025,.18),type:"spring",stiffness:260,damping:28},
+                  whileHover:{y:-1}
+                },
+                  h("div",{className:"result-url"},item.url),
+                  h("div",{className:"result-title"},item.title||item.url),
+                  h("div",{className:"result-desc"},item.desc||item.description||"")
+                )
+              )
+            : h("div",{className:"results-empty"},loading?"Searching…":"No results found.")
+        )
+      );
+
+    const webNode =
+      currentUrl && !showResults && h(
+        motion.section,
+        {
+          className:"web-view visible",
+          initial:{opacity:0,scale:.995},
+          animate:{opacity:1,scale:1},
+          transition:{duration:.22}
+        },
+        h("iframe",{
+          ref:frameRef,
+          className:"frame",
+          sandbox:"allow-same-origin allow-scripts allow-forms allow-popups",
+          referrerPolicy:"no-referrer",
+          title:"PROXUS"
+        }),
+        sourceMode && h("pre",{className:"source",style:{display:"block"}},rawHtml)
+      );
+
+    const appNode = h(
+      "div",
+      {className:"app"},
+      h(Dust),
+      h("div",{className:"shell"},
+        sidebarNode,
+        h("main",{className:"main"},
+          toolbarNode,
+          h("section",{className:"view"},
+            homeNode,
+            resultsNode,
+            webNode,
+            loading && h(motion.div,{className:"loading",initial:{opacity:0},animate:{opacity:1},exit:{opacity:0}},h(motion.div,{className:"loading-ring",animate:{rotate:360},transition:{repeat:Infinity,duration:.75,ease:"linear"}}))
+          )
+        )
+      )
+    );
+
+    return h(React.Fragment,null,
+      appNode,
+      toast && h(motion.div,{className:"toast",initial:{opacity:0,y:10,scale:.97},animate:{opacity:1,y:0,scale:1},exit:{opacity:0,y:6,scale:.98},transition:{type:"spring",stiffness:360,damping:28}},h("strong",null,toast.title),toast.message)
     );
   }
 
-  function updateBookmarkState() {
-    const tab = currentTab();
-
-    if (!tab || !tab.url) {
-      state.bookmark = false;
-    } else {
-      const bookmarks =
-        JSON.parse(localStorage.getItem("proxus-bookmarks") || "[]");
-
-      state.bookmark =
-        bookmarks.some(bookmark => bookmark.url === tab.url);
-    }
-
-    els.bookmarkCurrent.classList.toggle(
-      "saved",
-      state.bookmark
-    );
-  }
-
-  /* Main omnibox */
-
-  document
-    .getElementById("omniboxForm")
-    .addEventListener("submit", event => {
-      event.preventDefault();
-      submitInput(els.omnibox.value);
-    });
-
-  els.omnibox.addEventListener("input", () => {
-    els.homeInput.value = els.omnibox.value;
-    els.sidebarInput.value = els.omnibox.value;
-    fetchSuggestions(els.omnibox.value);
-  });
-
-  els.omnibox.addEventListener("keydown", event => {
-    const items =
-      [...els.suggestions.querySelectorAll(".suggestion")];
-
-    if (event.key === "ArrowDown" && items.length) {
-      event.preventDefault();
-
-      state.suggestionIndex =
-        Math.min(
-          items.length - 1,
-          state.suggestionIndex + 1
-        );
-
-      items.forEach((item, index) => {
-        item.classList.toggle(
-          "selected",
-          index === state.suggestionIndex
-        );
-      });
-
-      return;
-    }
-
-    if (event.key === "ArrowUp" && items.length) {
-      event.preventDefault();
-
-      state.suggestionIndex =
-        Math.max(
-          -1,
-          state.suggestionIndex - 1
-        );
-
-      items.forEach((item, index) => {
-        item.classList.toggle(
-          "selected",
-          index === state.suggestionIndex
-        );
-      });
-
-      return;
-    }
-
-    if (
-      event.key === "Enter" &&
-      state.suggestionIndex >= 0 &&
-      items[state.suggestionIndex]
-    ) {
-      event.preventDefault();
-      navigate(items[state.suggestionIndex].dataset.url);
-      return;
-    }
-
-    if (event.key === "Escape") {
-      closeSuggestions();
-    }
-  });
-
-  els.omnibox.addEventListener("focus", () => {
-    fetchSuggestions(els.omnibox.value);
-  });
-
-  /* Home */
-
-  document
-    .getElementById("homeForm")
-    .addEventListener("submit", event => {
-      event.preventDefault();
-
-      const value = els.homeInput.value.trim();
-
-      syncInputs(value);
-      submitInput(value);
-    });
-
-  els.homeInput.addEventListener("input", () => {
-    els.omnibox.value = els.homeInput.value;
-    els.sidebarInput.value = els.homeInput.value;
-    fetchSuggestions(els.homeInput.value);
-  });
-
-  document
-    .querySelectorAll(".home-chip")
-    .forEach(button => {
-      button.addEventListener("click", () => {
-        const query = button.dataset.query;
-        syncInputs(query);
-        submitInput(query);
-      });
-    });
-
-  /* Sidebar */
-
-  document
-    .getElementById("sidebarForm")
-    .addEventListener("submit", event => {
-      event.preventDefault();
-
-      const value = els.sidebarInput.value.trim();
-
-      syncInputs(value);
-      submitInput(value);
-    });
-
-  els.sidebarInput.addEventListener("input", () => {
-    els.omnibox.value = els.sidebarInput.value;
-    els.homeInput.value = els.sidebarInput.value;
-  });
-
-  document
-    .querySelectorAll(".bookmark-tile")
-    .forEach(bookmark => {
-      bookmark.addEventListener("click", () => {
-        navigate(bookmark.dataset.url);
-      });
-    });
-
-  document
-    .getElementById("newTab")
-    .addEventListener("click", () => {
-      createTab();
-    });
-
-  document
-    .getElementById("newTabTop")
-    .addEventListener("click", () => {
-      createTab();
-    });
-
-  document
-    .getElementById("compactHome")
-    .addEventListener("click", () => {
-      showHome();
-    });
-
-  document
-    .getElementById("collapseSidebar")
-    .addEventListener("click", () => {
-      state.collapsed = !state.collapsed;
-
-      els.sidebar.classList.toggle(
-        "compact",
-        state.collapsed
-      );
-
-      localStorage.setItem(
-        "pro-xus-sidebar-collapsed",
-        state.collapsed ? "1" : "0"
-      );
-    });
-
-  /* Navigation */
-
-  [
-    "sideBack",
-    "topBack"
-  ].forEach(id => {
-    document
-      .getElementById(id)
-      .addEventListener("click", goBack);
-  });
-
-  [
-    "sideForward",
-    "topForward"
-  ].forEach(id => {
-    document
-      .getElementById(id)
-      .addEventListener("click", goForward);
-  });
-
-  [
-    "sideReload",
-    "topReload"
-  ].forEach(id => {
-    document
-      .getElementById(id)
-      .addEventListener("click", reloadCurrent);
-  });
-
-  document
-    .getElementById("bookmarkCurrent")
-    .addEventListener("click", toggleBookmark);
-
-  /* Section buttons */
-
-  document
-    .getElementById("searchSection")
-    .addEventListener("click", () => {
-      document
-        .getElementById("searchSection")
-        .classList.add("active");
-
-      document
-        .getElementById("settingsSection")
-        .classList.remove("active");
-
-      showHome();
-    });
-
-  document
-    .getElementById("settingsSection")
-    .addEventListener("click", () => {
-      showToast(
-        "PROXUS Settings",
-        "Proxy backend configuration stays server-side. Client-side cover and panic behavior has intentionally been removed."
-      );
-    });
-
-  /* Mobile */
-
-  document
-    .getElementById("mobileMenu")
-    .addEventListener("click", () => {
-      els.sidebar.classList.toggle("mobile-open");
-    });
-
-  /* Frame title */
-
-  els.webFrame.addEventListener("load", () => {
-    updateBookmarkState();
-
-    try {
-      const title =
-        els.webFrame.contentDocument?.title;
-
-      if (title) {
-        updateTabTitle(title);
-      }
-    } catch {}
-  });
-
-  /* Keyboard shortcuts */
-
-  document.addEventListener("keydown", event => {
-
-    if (
-      event.key === "/" &&
-      document.activeElement !== els.omnibox &&
-      document.activeElement !== els.homeInput &&
-      document.activeElement !== els.sidebarInput
-    ) {
-      event.preventDefault();
-      els.omnibox.focus();
-      els.omnibox.select();
-    }
-
-    if (
-      (event.ctrlKey || event.metaKey) &&
-      event.key.toLowerCase() === "l"
-    ) {
-      event.preventDefault();
-      els.omnibox.focus();
-      els.omnibox.select();
-    }
-
-    if (
-      (event.ctrlKey || event.metaKey) &&
-      event.key.toLowerCase() === "t"
-    ) {
-      event.preventDefault();
-      createTab();
-    }
-
-    if (
-      (event.ctrlKey || event.metaKey) &&
-      event.key.toLowerCase() === "w"
-    ) {
-      event.preventDefault();
-
-      const tab = currentTab();
-
-      if (tab) {
-        closeTab(tab.id);
-      }
-    }
-  });
-
-  /*
-    Restore sidebar state.
-
-    Notice that there is deliberately no panic/cover URL,
-    hidden exit key, automatic disguise, or forced navigation.
-  */
-  state.collapsed =
-    localStorage.getItem("pro-xus-sidebar-collapsed") === "1";
-
-  els.sidebar.classList.toggle(
-    "compact",
-    state.collapsed
-  );
-
-  loadTabs();
-  renderTabs();
-
-  const initialTab = currentTab();
-
-  if (initialTab?.url) {
-    loadProxy(initialTab.url, false);
-  } else {
-    showHome();
-  }
-
-  /*
-    Handle links in the normal browser history without exposing
-    any hidden escape behavior.
-  */
-  window.addEventListener("popstate", () => {
-    const hash = location.hash;
-
-    if (!hash.startsWith("#/")) {
-      showHome();
-      return;
-    }
-
-    try {
-      const target =
-        decodeURIComponent(hash.slice(2));
-
-      if (normalizeUrl(target)) {
-        loadProxy(target, false);
-      }
-    } catch {}
-  });
+  createRoot(document.getElementById("root")).render(h(App));
 </script>
 </body>
 </html>
