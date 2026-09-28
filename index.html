@@ -892,8 +892,9 @@
           const shouldProxy=resourceLike || (selector==="link" && /(?:stylesheet|preload|modulepreload|icon|manifest|apple-touch-icon|mask-icon|dns-prefetch|preconnect)/i.test(rel)) || selector==='script';
           node.setAttribute('data-proxus-original-'+key,absolute);
           node.setAttribute('data-proxus-relay-'+key,proxyAsset(absolute));
-          const directFirst=imageLike || selector==='source' || (selector==='video' && attr==='poster');
-          node.setAttribute(attr,directFirst ? absolute : (shouldProxy ? proxyAsset(absolute) : absolute));
+          const proxyFirst=imageLike || selector==='source' || (selector==='video' && attr==='poster');
+          node.setAttribute(attr,proxyFirst ? proxyAsset(absolute) : (shouldProxy ? proxyAsset(absolute) : absolute));
+          if(proxyFirst) node.setAttribute('data-proxus-direct-'+key,absolute);
         });
       }
 
@@ -922,7 +923,16 @@
           bits[0]=absolute;
           return bits.join(' ');
         }).filter(Boolean).join(', ');
-        if(absoluteSet)node.setAttribute(attr,absoluteSet);
+        if(absoluteSet){
+          const relaySet=absoluteSet.split(',').map(part=>{
+            const bits=part.trim().split(/\s+/);
+            if(!bits[0])return part.trim();
+            bits[0]=proxyAsset(bits[0]);
+            return bits.join(' ');
+          }).join(', ');
+          node.setAttribute(attr,relaySet);
+          node.setAttribute('data-proxus-direct-srcset',absoluteSet);
+        }
         node.setAttribute('data-proxus-original-srcset',original);
         node.setAttribute('data-proxus-relay-srcset',original.split(',').map(part=>{
           const bits=part.trim().split(/\s+/); if(!bits[0])return part.trim();
@@ -972,15 +982,18 @@
             if(!el.getAttribute('data-proxus-original-'+key))el.setAttribute('data-proxus-original-'+key,abs);
             if(!el.getAttribute('data-proxus-relay-'+key))el.setAttribute('data-proxus-relay-'+key,__asset(abs));
             const tag=String(el.tagName||'').toLowerCase();
-            if((tag==='img'||tag==='source'||(tag==='video'&&attr==='poster')) && raw!==abs)el.setAttribute(attr,abs);
-            const original=el.getAttribute('data-proxus-original-'+key);
-            const relay=el.getAttribute('data-proxus-relay-'+key);
+            const imageLike=(tag==='img'||tag==='source'||(tag==='video'&&attr==='poster'));
+            const original=el.getAttribute('data-proxus-original-'+key)||abs;
+            const relay=el.getAttribute('data-proxus-relay-'+key)||__asset(abs);
+            el.setAttribute('data-proxus-relay-'+key,relay);
+            if(imageLike)el.setAttribute(attr,relay);
+            else if(raw!==abs)el.setAttribute(attr,abs);
             if(original && relay && el.getAttribute('data-proxus-hook-'+key)!=='1'){
               el.setAttribute('data-proxus-hook-'+key,'1');
               el.addEventListener('error',()=>{
                 if(el.getAttribute('data-proxus-used-relay-'+key)==='1')return;
                 el.setAttribute('data-proxus-used-relay-'+key,'1');
-                el.setAttribute(attr,relay);
+                el.setAttribute(attr,original||relay);
               },true);
             }
           }
@@ -995,14 +1008,15 @@
               const bits=part.trim().split(/\s+/); if(!bits[0])return '';
               return [__asset(bits[0]),...bits.slice(1)].join(' ');
             }).filter(Boolean).join(', ');
-            el.setAttribute(srcsetAttr,directSet);
+            el.setAttribute(srcsetAttr,relaySet);
+            el.setAttribute('data-proxus-direct-srcset',directSet);
             el.setAttribute('data-proxus-relay-srcset',relaySet);
             if(el.getAttribute('data-proxus-srcset-hook')!=='1'){
               el.setAttribute('data-proxus-srcset-hook','1');
               el.addEventListener('error',()=>{
                 if(el.getAttribute('data-proxus-used-relay-srcset')==='1')return;
                 el.setAttribute('data-proxus-used-relay-srcset','1');
-                el.setAttribute(srcsetAttr,relaySet);
+                el.setAttribute(srcsetAttr,el.getAttribute('data-proxus-direct-srcset')||relaySet);
               },true);
             }
           }
@@ -1621,7 +1635,8 @@
         ),
         vpnOpen && h(motion.div,{className:"vpn-menu",initial:{opacity:0,y:-6,scale:.97},animate:{opacity:1,y:0,scale:1},exit:{opacity:0,y:-4,scale:.985},transition:{type:"spring",stiffness:430,damping:30}},
           h("div",{className:"vpn-menu-row"},h("span",null,"Private route"),h("strong",null,"On")),
-          h("div",{className:"vpn-menu-row"},h("span",null,"Traffic"),h("span",{style:{color:"var(--muted)"}},"Browser only"))
+          h("div",{className:"vpn-menu-row"},h("span",null,"Traffic"),h("span",{style:{color:"var(--muted)"}},"Browser only")),
+          h("div",{className:"vpn-menu-note"},"Regional exit routing is not enabled here. Use the relay for private browser traffic; the country tool is kept out of access-control bypasses.")
         )
       ),
       h("div", {className:"omnibox-wrap"},
