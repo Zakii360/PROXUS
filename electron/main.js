@@ -1,6 +1,6 @@
 'use strict';
 
-const { app, BrowserWindow, shell } = require('electron');
+const { app, BrowserWindow, Menu, shell } = require('electron');
 const path = require('path');
 const { pathToFileURL } = require('url');
 
@@ -14,6 +14,7 @@ function createWindow() {
     minHeight: 650,
     title: 'PROXUS',
     backgroundColor: '#07090f',
+    autoHideMenuBar: true,
     show: false,
     webPreferences: {
       contextIsolation: true,
@@ -27,6 +28,23 @@ function createWindow() {
   const indexUrl = pathToFileURL(indexPath).toString();
 
   win.loadURL(indexUrl);
+
+  win.webContents.on('did-finish-load', async () => {
+    try {
+      await win.webContents.insertCSS(`
+        html, body, * {
+          scrollbar-width: none !important;
+          -ms-overflow-style: none !important;
+        }
+
+        *::-webkit-scrollbar {
+          width: 0 !important;
+          height: 0 !important;
+          display: none !important;
+        }
+      `);
+    } catch (_) {}
+  });
 
   win.once('ready-to-show', () => {
     win.show();
@@ -55,6 +73,10 @@ function createWindow() {
 
 app.whenReady().then(() => {
   app.setName('PROXUS');
+
+  // remove "File / Edit / View / Window / Help menu" (wait lowkey why do I always forget this step :sob:)
+  Menu.setApplicationMenu(null);
+
   createWindow();
 
   app.on('activate', () => {
