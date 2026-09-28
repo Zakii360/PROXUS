@@ -1,5 +1,5 @@
 # PROXUS
-I guess you could say I forked some obfuscated React code from Lucide and rewrote a tabbed web proxy for cheating to whatever I wanted to make.
+I guess you could say I forked some obfuscated React code from [Lucide](https://lucideon.top) and rewrote a tabbed web proxy for cheating to whatever I wanted to make.
 
 
 it's like I'm adhd with the random side projects (no offense to the adhd community, 💙 you guys) should I get tested 😭(like actually, not as a joke)
@@ -32,7 +32,7 @@ Electron is installed through the project's npm dependencies
 
 Clone the repository
 
-git clone https://github.com/YOUR-ACCOUNT/PROXUS.git
+git clone https://github.com/Zakii360/PROXUS.git
 cd PROXUS
 
 Replace the repository URL with the actual PROXUS repository URL.
@@ -81,65 +81,36 @@ PROXUS/
 
 index.html
 
-The main PROXUS application. The UI, search surface, web viewer, settings, themes, cursor behavior, animations, and client-side logic live here.
-
-electron/main.js
-
-Creates the native Electron window, loads the local application, removes the default Electron application menu, hides scrollbars, and handles desktop window behavior.
-
-electron/preload.js
-
-Provides the isolated Electron bridge used by the renderer. Node integration is disabled in the page itself.
-
-assets/proxus.svg
-
-The application logo and favicon asset.
-
-Use it from the root index.html with:
-
-<link rel="icon" href="./assets/proxus.svg" type="image/svg+xml">
-
-GitHub Actions
+## Actions
 
 The repository includes separate workflows for Windows, Linux, and macOS builds.
 
 They install the Node dependencies, run the Electron build, and upload the generated desktop artifacts. The workflows can also be used for tagged releases depending on the event configuration in each YAML file.
 
-For local development, GitHub Actions is not required. npm start is enough to run PROXUS on a development machine.
-
-How the project came together
+For local development, GitHub Actions is not required. `npm start` is enough to run PROXUS on a development machine.
+_____________________________________
+# How the project came together
 
 PROXUS is basically a combination of two parts:
 
-Lucide source — the starting point for the original structure, interface ideas, and base project being modified.
+Lucide source - the starting point for the original structure, interface ideas, and base project being modified.
 
-My own 360/web-development work — the implementation knowledge and techniques I brought in from building 360, including frontend architecture, web-viewer behavior, search interfaces, proxy-related client logic, animations, interaction design, and Electron packaging.
+My own 360/web-development work - the implementation knowledge and techniques I brought in from building 360, including frontend architecture, web-viewer behavior, search interfaces, proxy-related client logic, animations, interaction design, and Electron packaging.
 
-The result is a heavily modified project rather than a fresh implementation written from zero.
+The result is a heavily modified project rather than a fresh implementation written from zero, otherwise this would look too good to be true (especially with the implementation of react!)
+____________________
 
-Development
-
-A typical development cycle is:
-
-npm install --legacy-peer-deps
-npm start
-
-Make changes to index.html or the Electron files, then restart Electron as needed.
-
-For a production build:
-
-npm run build
-
-Keep package.json and the lockfile in sync when dependencies are changed.
-
-Privacy and networking
+# Privacy and networking
 
 PROXUS is designed around its web-viewing/proxy architecture rather than simply opening arbitrary pages in the system browser. The desktop Electron shell provides the application window; the web-viewing behavior remains part of the PROXUS application itself.
 
 A PROXUS location selector should not be treated as proof that the computer's system-wide network connection has changed. Geographic routing, when implemented, belongs to the upstream web-viewer/proxy layer.
 
-Credits and origins
-
-PROXUS began as a modification of Lucide's source code and was extended with my own work from the 360 web-development project.
+Of course, the desktop app is not required.
+______________________________________________________________
+# Credits: 
+[ap5z](https://github.com/coinbaselarper) for Lucide's site source code
+[mingzew2](https://github.com/mingzew2) for the basic web-viewer implementation guide in the 360 repo
+[google](https://github.com/google) for cse which powers search
 
 Respect the licenses and notices of the upstream Lucide project and any other third-party code or services used by PROXUS.
