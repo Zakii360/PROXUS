@@ -24,26 +24,26 @@ The project also contains work influenced by the techniques and patterns I devel
 
 Node.js 24 or newer
 
-npm
+`npm`
 
-Git
+`Git`
 
 Electron is installed through the project's npm dependencies
 
 Clone the repository
 
-git clone https://github.com/Zakii360/PROXUS.git
-cd PROXUS
+`git clone https://github.com/Zakii360/PROXUS.git
+cd PROXUS`
 
 Replace the repository URL with the actual PROXUS repository URL.
 
 Install dependencies
 
-npm install --legacy-peer-deps
+`npm install --legacy-peer-deps`
 
 Start PROXUS locally
 
-npm start
+`npm start`
 
 This launches the Electron desktop application and loads the local index.html through the Electron shell.
 
@@ -51,36 +51,18 @@ Build the desktop app
 
 Build for the current platform with:
 
-npm run build
+`npm run build`
 
 The packaged application is written to the dist/ directory.
 
 Platform-specific scripts are also available:
-
+`
 npm run build:win
 npm run build:linux
 npm run build:mac
-
+`
 The exact output format depends on the target configured in package.json and electron-builder.
-
-Project structure
-
-PROXUS/
-├── index.html
-├── package.json
-├── assets/
-│   └── proxus.svg
-├── electron/
-│   ├── main.js
-│   └── preload.js
-└── .github/
-    └── workflows/
-        ├── build-windows.yml
-        ├── build-linux.yml
-        └── build-macos.yml
-
-index.html
-
+To install desktop apps, check actions history for old productions do download. If they aren't available, fork the repo, enable actions and run it yourself for the download.
 ## Actions
 
 The repository includes separate workflows for Windows, Linux, and macOS builds.
