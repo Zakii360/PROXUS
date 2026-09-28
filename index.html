@@ -194,13 +194,6 @@
 
     .main{min-width:0;min-height:0;flex:1;height:100%;display:flex;flex-direction:column}
 
-    .region-control{position:relative;display:flex;align-items:center}.region-control::after{content:"";position:absolute;right:0;top:32px;width:205px;height:10px;pointer-events:auto}.region-menu{pointer-events:auto}
-    .region-button{height:32px;min-width:34px;padding:0 8px;display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:5px;background:var(--surface);color:var(--muted);font-size:10px;font-weight:650;cursor:pointer}
-    .region-button:hover{background:var(--surface-2);color:var(--text);border-color:var(--border-strong)}
-    .region-menu{position:absolute;right:0;top:34px;z-index:80;width:190px;padding:5px;background:#151519;border:1px solid var(--border-strong);border-radius:7px;box-shadow:0 24px 70px rgba(0,0,0,.5);transform-origin:top right}
-    .region-option{width:100%;height:32px;padding:0 8px;display:flex;align-items:center;gap:8px;border:0;border-radius:4px;background:transparent;color:var(--muted);font:inherit;font-size:10px;text-align:left;cursor:pointer}
-    .region-option:hover,.region-option.active{background:var(--surface-2);color:var(--text)}
-    .region-code{margin-left:auto;color:var(--muted-2);font-size:9px}
     .toolbar{
       position:relative;
       z-index:15;
@@ -228,6 +221,14 @@
     }
     .icon-button:hover:not(:disabled){background:var(--surface-2);color:var(--text)}
     .icon-button:disabled{opacity:.27;cursor:not-allowed}
+
+    .vpn-wrap{position:relative;flex:0 0 auto}
+    .vpn-button{height:36px;display:flex;align-items:center;gap:7px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.035);color:var(--text);font:inherit;font-size:11px;cursor:pointer;transition:background .2s,border-color .2s,transform .2s}
+    .vpn-button:hover{background:var(--surface-2);border-color:rgba(255,255,255,.16)}
+    .vpn-dot{width:6px;height:6px;border-radius:50%;background:#67e8a5;box-shadow:0 0 0 3px rgba(103,232,165,.08)}
+    .vpn-menu{position:absolute;right:0;top:42px;width:220px;padding:8px;border:1px solid var(--border);border-radius:10px;background:rgba(12,12,15,.96);box-shadow:0 18px 45px rgba(0,0,0,.38);backdrop-filter:blur(24px);z-index:30}
+    .vpn-menu-row{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border-radius:7px;font-size:11px}
+    .vpn-menu-row:hover{background:var(--surface-2)}
 
     .omnibox-wrap{position:relative;flex:1;min-width:0}
     .omnibox{
@@ -397,10 +398,14 @@
       *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
     }
   </style>
+  <script>window.__gcse={searchOptions:{enableHistory:false}};</script>
   <script async src="https://cse.google.com/cse.js?cx=e003eb0834b6b4be8"></script>
 </head>
 <body>
-<div id="idx-container" aria-hidden="true"><div class="gcse-search" id="idx-mount"></div></div>
+<div id="idx-container" aria-hidden="true">
+  <div class="gcse-searchresults-only" id="idx-mount-web" data-gname="proxus-cse-web" data-enablehistory="false" data-autosearchonload="false" data-enableimagesearch="true" data-defaulttoimagesearch="false"></div>
+  <div class="gcse-searchresults-only" id="idx-mount-image" data-gname="proxus-cse-image" data-enablehistory="false" data-autosearchonload="false" data-enableimagesearch="true" data-defaulttoimagesearch="true" data-imagesearchresultsetsize="large"></div>
+</div>
 <div id="root"></div>
 
 <script type="module">
@@ -518,6 +523,175 @@
     return [value,setValue];
   }
 
+  function cleanHost(url){
+    try{
+      const u=new URL(url||'');
+      return u.hostname.replace(/^www\./i,'');
+    }catch{
+      return '';
+    }
+  }
+
+  function getGcseRoot(kind='web'){
+    return document.getElementById(kind==='image' ? 'idx-mount-image' : 'idx-mount-web');
+  }
+
+  function getGcseInput(root=getGcseRoot('web')){
+    return root?.querySelector?.('input.gsc-input') || document.querySelector('#idx-container input.gsc-input');
+  }
+
+  function getGcseElement(kind='web'){
+    try{
+      const name=kind==='image'?'proxus-cse-image':'proxus-cse-web';
+      return window.google?.search?.cse?.element?.getElement(name) || null;
+    }catch{
+      return null;
+    }
+  }
+
+  function scrubGcseUrl(){
+    try{
+      const u=new URL(window.location.href);
+      let changed=false;
+      for(const key of Array.from(u.searchParams.keys())){
+        if(/^gsc(?:[._-]|$)/i.test(key)){
+          u.searchParams.delete(key);
+          changed=true;
+        }
+      }
+      if(/^#?gsc\./i.test(u.hash) || /(?:^#|&)gsc\.tab=/i.test(u.hash) || /(?:^#|&)gsc\.q=/i.test(u.hash)){
+        const kept=u.hash.replace(/^#/,'').split('&').filter(x=>!/^gsc(?:\.|[._-])/i.test(x));
+        u.hash=kept.length?'#'+kept.join('&'):'';
+        changed=true;
+      }
+      if(changed) history.replaceState(history.state,'',u.pathname+u.search+u.hash);
+    }catch{}
+  }
+
+  function scrapeGcseResults(kind='web'){
+    const root=getGcseRoot(kind);
+    if(!root)return [];
+    const nodes=[...root.querySelectorAll('.gsc-webResult.gsc-result, .gs-webResult, .gsc-imageResult, .gsc-result')];
+    const out=[];
+    const seen=new Set();
+
+    for(const el of nodes){
+      const titleEl=el.querySelector('.gs-title a[data-ctorig], .gs-title a, a.gs-title, .gs-title');
+      const anchor=el.querySelector('a[data-ctorig], .gs-title a, a.gs-image');
+      const title=(titleEl?.textContent||'').replace(/\s+/g,' ').trim();
+      const rawUrl=anchor?.getAttribute('data-ctorig') || anchor?.getAttribute('href') || el.querySelector('[data-ctorig]')?.getAttribute('data-ctorig') || '';
+      let url='';
+      try{
+        const parsed=new URL(rawUrl,location.href);
+        const unwrapped=parsed.searchParams.get('url');
+        url=unwrapped || parsed.href;
+        if(/google\.[^/]+\/url$/i.test(parsed.pathname)) url=parsed.searchParams.get('q') || url;
+      }catch{}
+
+      const imageEl=el.querySelector('.gs-image img, .gsc-thumbnail img, img.gs-image');
+      let image=imageEl?.getAttribute('src') || imageEl?.getAttribute('data-src') || '';
+      if(image && /^\/\//.test(image)) image='https:'+image;
+      const snippet=(el.querySelector('.gs-snippet, .gs-bidi')?.textContent||'').replace(/\s+/g,' ').trim();
+      const displayUrl=(el.querySelector('.gs-visibleUrl-long, .gs-visibleUrl')?.textContent||url||'').replace(/\s+/g,' ').trim();
+
+      if(!url && !image && !title)continue;
+      const key=(url||image||title).replace(/#.*$/,'');
+      if(seen.has(key))continue;
+      seen.add(key);
+
+      out.push({
+        title:title||url||'Result',
+        url:url||image||'#',
+        description:snippet,
+        source:cleanHost(url),
+        displayUrl,
+        thumbnail:image,
+        image:image,
+        _gsc:true
+      });
+    }
+    scrubGcseUrl();
+    return out;
+  }
+
+  function triggerGcse(query,kind='web'){
+    const q=String(query||'').trim();
+    if(!q)return Promise.resolve([]);
+
+    return new Promise(resolve=>{
+      const started=Date.now();
+      const root=getGcseRoot(kind);
+      let lastCount=0;
+      let settledTimer=0;
+      let observer=null;
+
+      const finish=()=>{
+        if(observer)observer.disconnect();
+        clearTimeout(settledTimer);
+        const result=scrapeGcseResults(kind);
+        resolve(result);
+      };
+
+      const watch=()=>{
+        const now=Date.now();
+        const count=root?.querySelectorAll?.('.gsc-result, .gsc-webResult, .gsc-imageResult')?.length||0;
+        if(count!==lastCount){
+          lastCount=count;
+          clearTimeout(settledTimer);
+          settledTimer=setTimeout(()=>{
+            if(Date.now()-started>650)finish();
+          },420);
+        }
+        if(count>0 && Date.now()-started>800){
+          clearTimeout(settledTimer);
+          settledTimer=setTimeout(finish,360);
+        }
+        if(Date.now()-started>7000)finish();
+      };
+
+      const poll=()=>{
+        const el=getGcseElement(kind);
+        const input=getGcseInput(root);
+        if(el && root){
+          try{el.clearAllResults?.();}catch{}
+          if(input){
+            input.value=q;
+            input.dispatchEvent(new Event('input',{bubbles:true}));
+            input.dispatchEvent(new Event('change',{bubbles:true}));
+          }
+          observer=new MutationObserver(watch);
+          observer.observe(root,{subtree:true,childList:true,characterData:true,attributes:true});
+          try{el.execute(q);}catch{
+            try{input?.form?.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));}catch{}
+          }
+          scrubGcseUrl();
+          watch();
+          return;
+        }
+        if(Date.now()-started>7000){finish();return;}
+        setTimeout(poll,100);
+      };
+      poll();
+    });
+  }
+
+  function mergeSearchResults(primary,secondary){
+    const out=[];
+    const seen=new Set();
+    for(const item of [...(primary||[]),...(secondary||[])]){
+      const key=String(item?.url||item?.link||item?.image||'').replace(/[?#].*$/,'').toLowerCase() || String(item?.title||'').toLowerCase();
+      if(seen.has(key))continue;
+      seen.add(key);
+      out.push(item);
+    }
+    return out;
+  }
+
+  try{
+    window.addEventListener('hashchange',()=>scrubGcseUrl(),{passive:true});
+    window.addEventListener('popstate',()=>scrubGcseUrl(),{passive:true});
+  }catch{}
+
   function normalizeUrl(raw){
     let value=String(raw||"").trim();
     if(!value)return "";
@@ -526,30 +700,12 @@
     return "";
   }
 
-  function proxify(url,regionCode="auto"){
-    const params=new URLSearchParams({url:String(url)});
-    if(regionCode && regionCode!=="auto") params.set("country",regionCode.toLowerCase());
-    return SUPABASE_PROXY+"?"+params.toString();
+  function proxify(url){
+    return SUPABASE_PROXY+"?url="+encodeURIComponent(url);
   }
 
-  function proxyAsset(url,regionCode="auto"){
-    const params=new URLSearchParams({asset:"1",url:String(url)});
-    if(regionCode && regionCode!=="auto") params.set("country",regionCode.toLowerCase());
-    return SUPABASE_PROXY+"?"+params.toString();
-  }
-
-  async function verifyRegionRoute(regionCode){
-    if(!regionCode || regionCode==="auto")return {ok:true,detected:"auto"};
-    try{
-      const probe="https://api.country.is/";
-      const response=await fetch(proxyAsset(probe,regionCode),{method:"GET",cache:"no-store"});
-      if(!response.ok)return {ok:false,detected:"error"};
-      const data=await response.json();
-      const detected=String(data?.country||"").toUpperCase();
-      return {ok:detected===regionCode.toUpperCase(),detected:detected||"unknown"};
-    }catch{
-      return {ok:false,detected:"error"};
-    }
+  function proxyAsset(url){
+    return SUPABASE_PROXY+"?asset=1&url="+encodeURIComponent(url);
   }
 
   function isSpecialUrl(value){
@@ -601,38 +757,51 @@
       const parser=new DOMParser();
       const doc=parser.parseFromString(html,"text/html");
 
-      // A strict meta CSP can blank an otherwise valid srcdoc page because
-      // the rewritten document executes from the iframe's srcdoc context.
       doc.querySelectorAll('meta[http-equiv="Content-Security-Policy" i]').forEach(node=>node.remove());
 
+      // Resolve every URL-bearing attribute against the real document URL.
+      // Keep the absolute URL as primary; only swap to the relay after the
+      // browser reports an actual load error.
       const resourceAttrs=[
-        ["img","src"],["source","src"],["video","src"],["audio","src"],["track","src"],
-        ["object","data"],["embed","src"],["image","href"],["script","src"],
-        ["input","src"],["button","formaction"],["input","formaction"],["textarea","formaction"],
-        ["link","href"]
+        ["img","src"],["img","data-src"],["img","data-lazy-src"],["img","data-original"],["img","data-url"],
+        ["source","src"],["source","data-src"],["video","src"],["video","poster"],["video","data-src"],
+        ["audio","src"],["track","src"],["object","data"],["embed","src"],["image","href"],
+        ["script","src"],["input","src"],["button","formaction"],["input","formaction"],["textarea","formaction"],
+        ["link","href"],["iframe","src"]
       ];
 
       for(const [selector,attr] of resourceAttrs){
         doc.querySelectorAll(selector).forEach(node=>{
           const raw=node.getAttribute(attr);
           if(!raw || isSpecialUrl(raw) || isProxyUrl(raw))return;
-
           const absolute=resolveNavigation(raw,pageUrl);
           if(!absolute || !/^https?:\/\//i.test(absolute))return;
-
-          // Resolve first against the real page URL. Keep the real absolute URL
-          // as the primary resource so normal cross-origin assets can load.
-          // If the browser rejects it, the injected bridge swaps it to the
-          // web-viewer asset relay. This avoids blindly sending every image,
-          // stylesheet, script, or font through a relay that may reject it.
-          node.setAttribute(attr,absolute);
-          node.setAttribute('data-proxus-original-url',absolute);
-          node.setAttribute('data-proxus-relay-url',proxyAsset(absolute));
+          const key=attr.replace(/[^a-z0-9]+/gi,'-');
+          const rel=(node.getAttribute('rel')||'').toLowerCase();
+          const imageLike=(selector==='img'||selector==='source'||selector==='image' || (selector==='video' && attr==='poster'));
+          const shouldProxy=!imageLike && (selector!=="link" || /(?:stylesheet|preload|modulepreload|icon|manifest|apple-touch-icon|mask-icon|dns-prefetch|preconnect)/i.test(rel));
+          node.setAttribute('data-proxus-original-'+key,absolute);
+          node.setAttribute('data-proxus-relay-'+key,proxyAsset(absolute));
+          node.setAttribute(attr,shouldProxy ? proxyAsset(absolute) : absolute);
         });
       }
 
-      doc.querySelectorAll("img[srcset],source[srcset],link[imagesrcset]").forEach(node=>{
-        const attr=node.hasAttribute("imagesrcset")?"imagesrcset":"srcset";
+      // Common lazy-loading conventions that live outside src/data-src.
+      doc.querySelectorAll('[data-background-image],[data-bg],[data-image]').forEach(node=>{
+        for(const attr of ['data-background-image','data-bg','data-image']){
+          const raw=node.getAttribute(attr);
+          if(!raw || isSpecialUrl(raw))continue;
+          const absolute=resolveNavigation(raw,pageUrl);
+          if(absolute && /^https?:\/\//i.test(absolute)){
+            node.setAttribute(attr,absolute);
+            node.setAttribute('data-proxus-original-bg',absolute);
+            node.setAttribute('data-proxus-lazy-bg',proxyAsset(absolute));
+          }
+        }
+      });
+
+      doc.querySelectorAll("img[srcset],source[srcset],link[imagesrcset],img[data-srcset],source[data-srcset]").forEach(node=>{
+        const attr=node.hasAttribute('data-srcset')?'data-srcset':(node.hasAttribute('imagesrcset')?'imagesrcset':'srcset');
         const original=node.getAttribute(attr)||"";
         const absoluteSet=original.split(',').map(part=>{
           const bits=part.trim().split(/\s+/);
@@ -641,306 +810,150 @@
           if(!absolute || !/^https?:\/\//i.test(absolute))return part.trim();
           bits[0]=absolute;
           return bits.join(' ');
-        }).join(', ');
-        node.setAttribute(attr,absoluteSet);
-        node.setAttribute('data-proxus-srcset',original);
+        }).filter(Boolean).join(', ');
+        if(absoluteSet)node.setAttribute(attr,absoluteSet);
+        node.setAttribute('data-proxus-original-srcset',original);
+        node.setAttribute('data-proxus-relay-srcset',original.split(',').map(part=>{
+          const bits=part.trim().split(/\s+/); if(!bits[0])return part.trim();
+          const absolute=resolveNavigation(bits[0],pageUrl); bits[0]=absolute&&/^https?:\/\//i.test(absolute)?proxyAsset(absolute):bits[0];
+          return bits.join(' ');
+        }).filter(Boolean).join(', '));
       });
 
-      const rewriteCssUrls=(css,base)=>String(css||"").replace(/url\(\s*([\"']?)([^\"')]+)\1\s*\)/gi,(full,quote,target)=>{
+      const rewriteCssUrls=(css,base)=>String(css||"").replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/gi,(full,quote,target)=>{
         if(isSpecialUrl(target)||isProxyUrl(target))return full;
         const absolute=resolveNavigation(target,base);
-        return absolute && /^https?:\/\//i.test(absolute)
-          ? `url("${absolute}")`
-          : full;
+        return absolute && /^https?:\/\//i.test(absolute) ? `url("${absolute}")` : full;
       });
 
-      doc.querySelectorAll("style").forEach(style=>{
-        style.textContent=rewriteCssUrls(style.textContent,pageUrl);
-      });
+      doc.querySelectorAll('style').forEach(style=>style.textContent=rewriteCssUrls(style.textContent,pageUrl));
+      doc.querySelectorAll('[style]').forEach(node=>node.setAttribute('style',rewriteCssUrls(node.getAttribute('style'),pageUrl)));
 
-      doc.querySelectorAll("[style]").forEach(node=>{
-        node.setAttribute("style",rewriteCssUrls(node.getAttribute("style"),pageUrl));
-      });
+      let baseNode=doc.querySelector('base');
+      if(!baseNode){
+        baseNode=doc.createElement('base');
+        doc.head ? doc.head.prepend(baseNode) : doc.documentElement.prepend(baseNode);
+      }
+      baseNode.setAttribute('href',pageUrl);
 
-      const bridge=doc.createElement("script");
+      const bridge=doc.createElement('script');
       bridge.textContent=`(()=>{
         const __PROXUS_PAGE=${JSON.stringify(pageUrl)};
         const __PROXUS_PROXY=${JSON.stringify(SUPABASE_PROXY)};
-        const __proxify=(input)=>{
-          try{
-            const u=new URL(String(input),__PROXUS_PAGE);
-            return __PROXUS_PROXY+"?asset=1&url="+encodeURIComponent(u.href);
-          }catch{return input}
+        const __asset=(u)=>__PROXUS_PROXY+'?asset=1&url='+encodeURIComponent(u);
+        const __page=(input)=>{try{return new URL(String(input),__PROXUS_PAGE).href}catch{return String(input)}};
+        const __http=(u)=>/^https?:$/i.test(new URL(u).protocol);
+        const __retryAttr=(el,attr)=>{
+          const relay=el.getAttribute('data-proxus-relay-'+attr.replace(/[^a-z0-9]+/gi,'-'));
+          const original=el.getAttribute('data-proxus-original-'+attr.replace(/[^a-z0-9]+/gi,'-'));
+          if(el.getAttribute('data-proxus-tried-fallback')==='1')return;
+          el.setAttribute('data-proxus-tried-fallback','1');
+          if(original) el.setAttribute(attr,original); else if(relay) el.setAttribute(attr,relay);
         };
-        const __isHttp=(u)=>/^https?:$/i.test(u.protocol);
-
-        // Resource fallback: direct absolute URL first, relay only after an
-        // actual browser load error.
-        document.querySelectorAll('[data-proxus-original-url]').forEach(el=>{
-          el.addEventListener('error',()=>{
-            const relay=el.getAttribute('data-proxus-relay-url');
-            if(!relay || el.getAttribute('data-proxus-tried-relay')==='1')return;
-            el.setAttribute('data-proxus-tried-relay','1');
-            const tag=el.tagName.toLowerCase();
-            const attr=tag==='object'?'data':tag==='image'?'href':tag==='link'?'href':'src';
-            el.setAttribute(attr,relay);
-          },true);
+        document.querySelectorAll('*').forEach(el=>{
+          for(const attr of ['src','href','data-src','data-lazy-src','data-original','data-url','poster','data','formaction']){
+            if(el.hasAttribute('data-proxus-relay-'+attr.replace(/[^a-z0-9]+/gi,'-'))){
+              el.addEventListener('error',()=>__retryAttr(el,attr),true);
+            }
+          }
+          const lazy=el.getAttribute('data-proxus-lazy-bg');
+          const originalBg=el.getAttribute('data-proxus-original-bg');
+          if(originalBg){
+            el.style.backgroundImage='url("'+originalBg.replace(/"/g,'\\"')+'")';
+            el.addEventListener('error',()=>{el.style.backgroundImage='url("'+lazy.replace(/"/g,'\\"')+'")'},true);
+          }
         });
-
-        document.querySelectorAll('[data-proxus-srcset]').forEach(el=>{
+        document.querySelectorAll('[data-proxus-relay-srcset]').forEach(el=>{
           el.addEventListener('error',()=>{
             if(el.getAttribute('data-proxus-tried-relay')==='1')return;
-            const original=el.getAttribute('data-proxus-srcset')||'';
-            const relayed=original.split(',').map(part=>{
-              const bits=part.trim().split(/\s+/);
-              if(!bits[0])return part.trim();
-              try{bits[0]=__proxify(new URL(bits[0],__PROXUS_PAGE).href)}catch{}
-              return bits.join(' ');
-            }).join(', ');
             el.setAttribute('data-proxus-tried-relay','1');
-            el.setAttribute(el.hasAttribute('imagesrcset')?'imagesrcset':'srcset',relayed);
+            el.setAttribute(el.hasAttribute('data-srcset')?'data-srcset':(el.hasAttribute('imagesrcset')?'imagesrcset':'srcset'),el.getAttribute('data-proxus-relay-srcset')||'');
           },true);
         });
 
+        // Validate CSS/background image URLs without requiring CORS access.
+        // If the absolute asset cannot load, switch just that element to the relay.
+        document.querySelectorAll('[style]').forEach(el=>{
+          const style=el.getAttribute('style')||'';
+          const urls=[...style.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/gi)].map(m=>m[1]);
+          urls.forEach(original=>{
+            if(!/^https?:\/\//i.test(original))return;
+            const test=new Image();
+            test.onerror=()=>{
+              const relay=__asset(original);
+              const current=el.getAttribute('style')||'';
+              el.setAttribute('style',current.split(original).join(relay));
+            };
+            test.src=original;
+          });
+        });
+
+        // Route site network traffic through the relay first. This keeps API
+        // calls, images, modules, and POST bodies in the same proxied origin.
+        // Direct access is only a fallback when the relay itself fails.
         const __fetch=window.fetch.bind(window);
         window.fetch=async function(input,init){
-          try{
-            const raw=typeof input==='string'?input:input?.url;
-            const u=new URL(raw,__PROXUS_PAGE);
-            if(__isHttp(u)){
-              const method=(init?.method || (typeof input!=='string' && input?.method) || 'GET').toUpperCase();
-              // GET/HEAD can use the relay as a CORS fallback. POST/PUT/PATCH/DELETE
-              // stay direct so request bodies and headers are not destroyed.
-              if(method==='GET' || method==='HEAD'){
-                const direct=await __fetch.call(this,input,init);
-                if(direct.ok)return direct;
-                try{
-                  const relayInit={...(init||{}),method};
-                  const relay=await __fetch.call(this,__proxify(u.href),relayInit);
-                  if(relay.ok)return relay;
-                }catch{}
-                return direct;
-              }
-            }
-          }catch{}
+          let raw=''; try{raw=typeof input==='string'?input:input?.url||''}catch{}
+          let u=''; try{u=__page(raw)}catch{}
+          if(__http(u) && !u.startsWith(__PROXUS_PROXY)){
+            const relay=__asset(u);
+            try{
+              const proxiedInput=typeof input==='string' ? relay : (input instanceof Request ? new Request(relay,input) : relay);
+              const proxied=await __fetch.call(this,proxiedInput,init);
+              if(proxied.ok || (proxied.status>=200 && proxied.status<400) || proxied.status===304)return proxied;
+            }catch{}
+            try{ return await __fetch.call(this,input,init); }catch{}
+          }
           return __fetch.call(this,input,init);
         };
 
-        const __open=XMLHttpRequest.prototype.open;
-        XMLHttpRequest.prototype.open=function(method,url,...rest){
-          // Preserve POST bodies. GET requests are allowed to fall back to the
-          // relay only if the site itself permits the direct request.
-          return __open.call(this,method,url,...rest);
-        };
-
-        // Relative links/forms inside srcdoc must never resolve against
-        // about:srcdoc. Send them to the outer viewer with the real URL.
-        document.addEventListener('click',e=>{
-          const a=e.target?.closest?.('a[href]');
-          if(!a)return;
-          const raw=a.getAttribute('href');
-          if(!raw || /^(?:#|javascript:|mailto:|tel:|data:|blob:)/i.test(raw))return;
-          try{
-            const u=new URL(raw,__PROXUS_PAGE);
-            if(__isHttp(u)){
-              e.preventDefault();
-              e.stopPropagation();
-              parent.postMessage({type:'PROXUS_NAVIGATE',url:u.href},'*');
-            }
-          }catch{}
-        },true);
-
-        document.addEventListener('submit',e=>{
-          const form=e.target;
-          if(!form?.action)return;
-          try{
-            const u=new URL(form.action,__PROXUS_PAGE);
-            if(__isHttp(u) && String(form.method||'get').toLowerCase()==='get'){
-              e.preventDefault();
-              e.stopPropagation();
-              parent.postMessage({type:'PROXUS_NAVIGATE',url:u.href},'*');
-            }
-          }catch{}
-        },true);
-      })();`;
-      doc.head ? doc.head.prepend(bridge) : doc.documentElement.prepend(bridge);
-
-      return "<!doctype html>\n"+doc.documentElement.outerHTML;
-    }catch{
-      return html;
-    }
-  }
-
-  async function fetchSearch(params){
-    // The official endpoint is the target; the relay only avoids browser CORS.
-    const target=SEARCH_API+"?"+params.toString();
-    const response=await fetch(proxyAsset(target),{method:"GET"});
-    if(!response.ok)throw new Error("Search request failed ("+response.status+")");
-    const text=await response.text();
-    try{return JSON.parse(text)}catch{throw new Error("Search returned invalid data")}
-  }
-
-  function getGcseInput(){
-    return document.querySelector('#idx-container input.gsc-input');
-  }
-
-  function getGcseButton(){
-    return document.querySelector('#idx-container .gsc-search-button-v2, #idx-container button.gsc-search-button');
-  }
-
-  function cleanHost(value){
-    try{return new URL(value).hostname.replace(/^www\\./i,'')}catch{return String(value||'')}
-  }
-
-  function scrapeGcseResults(){
-    const root=document.getElementById('idx-container');
-    if(!root)return [];
-    const nodes=root.querySelectorAll('.gsc-webResult.gsc-result, .gs-result');
-    const seen=new Set();
-    const out=[];
-
-    nodes.forEach(node=>{
-      const titleAnchor=node.querySelector('.gs-title a[data-ctorig], .gs-title a, a.gs-title');
-      if(!titleAnchor)return;
-
-      let href=titleAnchor.getAttribute('data-ctorig') || titleAnchor.href || '';
-      if(!href)return;
-
-      if(href.includes('google.com/url')){
-        try{href=new URL(href).searchParams.get('q') || href}catch{}
-      }
-
-      const key=href.replace(/\/$/,'').toLowerCase();
-      if(!key || seen.has(key))return;
-      seen.add(key);
-
-      const snippet=node.querySelector('.gs-snippet');
-      const thumb=node.querySelector('.gs-image img, .gsc-thumbnail img, img.gs-image');
-      const title=titleAnchor.textContent.trim();
-
-      out.push({
-        type:'web',
-        title,
-        url:href,
-        description:snippet ? snippet.textContent.trim() : '',
-        thumbnail:thumb ? (thumb.src || thumb.getAttribute('data-src') || '') : '',
-        source:cleanHost(href),
-        _gsc:true
-      });
-    });
-
-    return out;
-  }
-
-  function triggerGcse(q){
-    return new Promise(resolve=>{
-      const started=Date.now();
-      let stableTimer=0;
-      let safetyTimer=0;
-      let readyTimer=0;
-      let observer=null;
-      let settled=false;
-
-      const finish=results=>{
-        if(settled)return;
-        settled=true;
-        clearTimeout(stableTimer);
-        clearTimeout(safetyTimer);
-        clearTimeout(readyTimer);
-        observer?.disconnect();
-        resolve(results||[]);
-      };
-
-      const root=document.getElementById('idx-container');
-      if(!root){finish([]);return}
-
-      const scrape=()=>{
-        const results=scrapeGcseResults();
-        const noResults=!!root.querySelector('.gs-no-results-result, .gsc-no-results-result');
-        if(results.length || noResults || Date.now()-started>7800){
-          finish(results);
-          return true;
-        }
-        return false;
-      };
-
-      const setupObserver=()=>{
-        if(observer)return;
-        observer=new MutationObserver(()=>{
-          clearTimeout(stableTimer);
-          stableTimer=setTimeout(scrape,1200);
-        });
-        observer.observe(root,{childList:true,subtree:true,characterData:true});
-      };
-
-      const execute=()=>{
-        const input=getGcseInput();
-        const cse=window.google?.search?.cse;
-        if(!input || !cse?.element){
-          if(Date.now()-started<7000){
-            readyTimer=setTimeout(execute,100);
-          }else{
-            finish(scrapeGcseResults());
-          }
-          return;
-        }
-
-        setupObserver();
-        input.value=q;
-        input.dispatchEvent(new Event('input',{bubbles:true}));
-        input.dispatchEvent(new Event('change',{bubbles:true}));
-
         try{
-          const element=
-            cse.element.getElement('searchresults-only0') ||
-            cse.element.getAllElements()?.[0];
-          if(element){
-            element.execute(q);
-            return;
+          const __sendBeacon=navigator.sendBeacon?.bind(navigator);
+          if(__sendBeacon){
+            navigator.sendBeacon=function(url,data){
+              try{const abs=__page(url); if(__http(abs)) return __sendBeacon(__asset(abs),data);}catch{}
+              return __sendBeacon(url,data);
+            };
           }
         }catch{}
 
-        const button=getGcseButton();
-        if(button){
-          setTimeout(()=>button.click(),50);
-          return;
-        }
+        try{
+          const __NativeEventSource=window.EventSource;
+          if(__NativeEventSource){
+            window.EventSource=function(url,opts){
+              let abs=String(url); try{abs=__page(url)}catch{}
+              return new __NativeEventSource(__http(abs)?__asset(abs):url,opts);
+            };
+            window.EventSource.prototype=__NativeEventSource.prototype;
+          }
+        }catch{}
 
-        if(Date.now()-started<7000)readyTimer=setTimeout(execute,100);
-        else finish(scrapeGcseResults());
-      };
 
-      setupObserver();
-      safetyTimer=setTimeout(()=>finish(scrapeGcseResults()),8500);
-      execute();
-    });
-  }
+        try{
+          const __NativeXHR=window.XMLHttpRequest;
+          const __open=__NativeXHR.prototype.open;
+          __NativeXHR.prototype.open=function(method,url){
+            let abs=String(url); try{abs=__page(url)}catch{}
+            const next=__http(abs)&&!abs.startsWith(__PROXUS_PROXY)?__asset(abs):url;
+            return __open.apply(this,[method,next].concat([].slice.call(arguments,2)));
+          };
+        }catch{}
 
-  function mergeSearchResults(primary,secondary){
-    const seen=new Set();
-    const output=[];
-
-    for(const item of [...primary,...secondary]){
-      const url=String(item?.url||'').trim();
-      if(!url)continue;
-      const key=url.replace(/\/$/,'').toLowerCase();
-      if(seen.has(key))continue;
-      seen.add(key);
-      output.push({
-        type:item.type||'web',
-        title:item.title||url,
-        url,
-        description:item.description||item.desc||item.snippet||'',
-        thumbnail:item.thumbnail||item.thumb||'',
-        source:item.source||cleanHost(url),
-        age:item.age||'',
-        price:item.price||'',
-        rating:item.rating,
-        reviews:item.reviews
-      });
-    }
-
-    return output;
+        // Forms and normal links are sent back through the outer viewer so they
+        // can be fetched against the real origin URL, never about:srcdoc.
+        document.addEventListener('click',e=>{
+          const a=e.target?.closest?.('a[href]'); if(!a)return;
+          const raw=a.getAttribute('href'); if(!raw || /^(?:#|javascript:|mailto:|tel:|data:|blob:)/i.test(raw))return;
+          try{const u=new URL(raw,__PROXUS_PAGE); if(__http(u.href)){e.preventDefault();e.stopPropagation();parent.postMessage({type:'PROXUS_NAVIGATE',url:u.href},'*');}}catch{}
+        },true);
+        document.addEventListener('submit',e=>{
+          const form=e.target; if(!form?.action)return;
+          try{const u=new URL(form.action,__PROXUS_PAGE); if(__http(u.href) && String(form.method||'get').toLowerCase()==='get'){e.preventDefault();e.stopPropagation();parent.postMessage({type:'PROXUS_NAVIGATE',url:u.href},'*');}}catch{}
+        },true);
+      })();`;
+      doc.head ? doc.head.prepend(bridge) : doc.documentElement.prepend(bridge);
+      return '<!doctype html>\n'+doc.documentElement.outerHTML;
+    }catch{return html;}
   }
 
   async function fetchOfficialSearch(q,type,safe,limit=50,page=1){
@@ -953,7 +966,16 @@
     });
 
     const target=SEARCH_API+'?'+params.toString();
-    const response=await fetch(proxyAsset(target),{method:'GET'});
+    let response=null;
+
+    try{
+      const direct=await fetch(target,{method:'GET',headers:{Accept:'application/json'}});
+      if(direct.ok && /json/i.test(direct.headers.get('content-type')||''))response=direct;
+    }catch{}
+
+    if(!response){
+      response=await fetch(proxyAsset(target),{method:'GET',headers:{Accept:'application/json'}});
+    }
 
     if(!response.ok){
       throw new Error('Search request failed ('+response.status+')');
@@ -984,20 +1006,13 @@
     const [searchType,setSearchType]=useState("web");
     const [safeSearch,setSafeSearch]=useState(true);
     const [dustEnabled,setDustEnabled]=useState(true);
-    const [region,setRegion]=useStorage("proxus-region","auto");
-    const [regionOpen,setRegionOpen]=useState(false);
-    const regionCloseTimer=useRef(null);
     const [settingsOpen,setSettingsOpen]=useState(false);
     const [suggestions,setSuggestions]=useState([]);
     const [suggestionIndex,setSuggestionIndex]=useState(-1);
     const [toast,setToast]=useState(null);
+    const [vpnOpen,setVpnOpen]=useState(false);
     const frameRef=useRef(null);
     const suggestTimer=useRef(null);
-
-    const regions=[
-      {code:"auto",name:"Automatic"},{code:"US",name:"United States"},{code:"CA",name:"Canada"},{code:"GB",name:"United Kingdom"},{code:"DE",name:"Germany"},{code:"FR",name:"France"},{code:"NL",name:"Netherlands"},{code:"SE",name:"Sweden"},{code:"SG",name:"Singapore"},{code:"JP",name:"Japan"},{code:"AU",name:"Australia"},{code:"BR",name:"Brazil"}
-    ];
-    const selectedRegion=regions.find(r=>r.code===region)||regions[0];
 
     const activeTab=useMemo(()=>tabs.find(t=>t.id===activeId)||tabs[0],[tabs,activeId]);
     const currentTab=()=>activeTab;
@@ -1032,7 +1047,7 @@
 
       setLoading(true);
       try{
-        const response=await fetch(proxify(resolvedUrl,region),{method:method==="post"?"POST":"GET"});
+        const response=await fetch(proxify(resolvedUrl),{method:method==="post"?"POST":"GET"});
         if(!response.ok)throw new Error("Server responded with "+response.status);
         const sourceHtml=await response.text();
         const finalUrl=resolveNavigation(response.headers.get("X-Final-Url")||resolvedUrl,resolvedUrl);
@@ -1086,7 +1101,7 @@
       try{
         if(type==='web'){
           const [gsc,official]=await Promise.allSettled([
-            triggerGcse(value),
+            triggerGcse(value,'web'),
             fetchOfficialSearch(value,'web',safeSearch,50,1)
           ]);
 
@@ -1096,12 +1111,38 @@
           const normalizedOfficial=officialResults.map(item=>({
             ...item,
             description:item.description||item.desc||'',
-            source:item.source||cleanHost(item.url),
+            source:item.source||cleanHost(item.url||item.link),
             thumbnail:item.thumbnail||item.thumb||''
           }));
 
-          // Own API data leads; GSC fills additional coverage, with URL-level dedupe.
-          setResults(mergeSearchResults(normalizedOfficial,gscResults));
+          setResults(mergeSearchResults(gscResults,normalizedOfficial));
+
+          if(!gscResults.length && !normalizedOfficial.length)throw new Error('No search results returned');
+        }else if(type==='image'){
+          const [gsc,official]=await Promise.allSettled([
+            triggerGcse(value,'image'),
+            fetchOfficialSearch(value,'image',safeSearch,50,1)
+          ]);
+
+          const gscResults=(gsc.status==='fulfilled'?gsc.value:[]).filter(item=>item.image||item.thumbnail);
+          const officialResults=official.status==='fulfilled'?official.value.results:[];
+          const normalizedOfficial=officialResults.map(item=>({
+            ...item,
+            image:item.image||item.thumbnail||item.url||'',
+            thumbnail:item.thumbnail||item.image||''
+          }));
+          const merged=mergeSearchResults(gscResults,normalizedOfficial);
+          setResults(merged);
+          if(!merged.length)throw new Error('No image results returned');
+        }else if(type==='news'){
+          const data=await fetchOfficialSearch(value,'news',safeSearch,50,1);
+          setResults(data.results.map(item=>({
+            ...item,
+            description:item.description||item.desc||item.snippet||'',
+            source:item.source||cleanHost(item.url||item.link),
+            thumbnail:item.thumbnail||item.image||item.thumb||'',
+            age:item.age||item.published||item.date||''
+          })));
         }else{
           const data=await fetchOfficialSearch(value,type,safeSearch,50,1);
           setResults(data.results);
@@ -1396,6 +1437,16 @@
         h(motion.button,{className:"icon-button",disabled:!((currentTab()?.historyIndex??-1)<((currentTab()?.history?.length??0)-1)),onClick:()=>goHistory(1),whileTap:{scale:.9}},h(Icon,{name:"forward"})),
         h(motion.button,{className:"icon-button",onClick:reload,whileTap:{scale:.9}},h(Icon,{name:"reload"}))
       ),
+      h("div", {className:"vpn-wrap"},
+        h(motion.button,{className:"vpn-button",onClick:()=>setVpnOpen(v=>!v),whileTap:{scale:.97}},
+          h("span",{className:"vpn-dot"}),
+          "VPN"
+        ),
+        vpnOpen && h(motion.div,{className:"vpn-menu",initial:{opacity:0,y:-6,scale:.97},animate:{opacity:1,y:0,scale:1},exit:{opacity:0,y:-4,scale:.985},transition:{type:"spring",stiffness:430,damping:30}},
+          h("div",{className:"vpn-menu-row"},h("span",null,"Private route"),h("strong",null,"On")),
+          h("div",{className:"vpn-menu-row"},h("span",null,"Traffic"),h("span",{style:{color:"var(--muted)"}},"Browser only"))
+        )
+      ),
       h("div", {className:"omnibox-wrap"},
         h("form", {className:"omnibox",onSubmit:submitOmni},
           h(Icon,{name:"search",size:14}),
@@ -1430,18 +1481,6 @@
               h("span",{className:"suggestion-type"},"WEB")
             )
           )
-        )
-      ),
-      h("div",{className:"region-control",onPointerEnter:()=>{clearTimeout(regionCloseTimer.current)},onPointerLeave:()=>{clearTimeout(regionCloseTimer.current);regionCloseTimer.current=setTimeout(()=>setRegionOpen(false),220)}},
-        h(motion.button,{className:"region-button",type:"button",onClick:()=>setRegionOpen(v=>!v),whileTap:{scale:.96}},
-          h(Icon,{name:"globe",size:14}),
-          selectedRegion.code!=="auto" && h("span",null,selectedRegion.code)
-        ),
-        regionOpen && h(motion.div,{className:"region-menu",onPointerEnter:()=>clearTimeout(regionCloseTimer.current),onPointerLeave:()=>{clearTimeout(regionCloseTimer.current);regionCloseTimer.current=setTimeout(()=>setRegionOpen(false),220)},initial:{opacity:0,scale:.96,y:-4},animate:{opacity:1,scale:1,y:0},transition:{type:"spring",stiffness:420,damping:28}},
-          regions.map(item=>h("button",{key:item.code,type:"button",className:"region-option"+(item.code===region?" active":""),onClick:()=>{setRegion(item.code);setRegionOpen(false);showToast(item.code==="auto"?"Location":"Testing location",item.code==="auto"?"Automatic routing":"Checking the relay egress…");
-            if(item.code!=="auto"){verifyRegionRoute(item.code).then(result=>{if(result.ok)showToast("Location active",item.name+" egress verified");else showToast("Location not routed",result.detected && result.detected!=="ERROR"?"Relay reports "+result.detected+" egress":"The current relay does not expose "+item.name+" egress")})}}},
-            h(Icon,{name:"globe",size:12}),h("span",null,item.name),h("span",{className:"region-code"},item.code)
-          ))
         )
       ),
       h(motion.button,{className:"icon-button",onClick:createTab,whileTap:{scale:.9}},h(Icon,{name:"plus"}))
@@ -1526,7 +1565,7 @@
           transition:{delay:Math.min(i*.02,.16),type:"spring",stiffness:260,damping:28},
           whileHover:{y:-2,scale:1.008}
         },
-          item.image&&h("img",{src:item.image,alt:item.title||"",loading:"lazy"}),
+          item.image&&h("img",{src:item.image,alt:item.title||"",loading:"lazy",onError:e=>{const el=e.currentTarget;if(el.dataset.proxusFallback==='1')return;el.dataset.proxusFallback='1';el.src=proxyAsset(item.image)}}),
           h("div",{className:"image-result-copy"},
             h("div",{className:"result-title"},item.title||item.url),
             h("div",{className:"result-url"},item.width&&item.height?(item.width+" × "+item.height):item.url)
@@ -1559,7 +1598,7 @@
             ),
             searchType==="news" && item.age && h("div",{className:"result-age"},item.age)
           ),
-          item.thumbnail && h("img",{className:"result-thumb",src:item.thumbnail,alt:"",loading:"lazy",onError:e=>e.currentTarget.remove()})
+          item.thumbnail && h("img",{className:"result-thumb",src:item.thumbnail,alt:"",loading:"lazy",onError:e=>{const el=e.currentTarget;if(el.dataset.proxusFallback==='1'){el.remove();return;}el.dataset.proxusFallback='1';el.src=proxyAsset(item.thumbnail)}})
         )
       );
     };
