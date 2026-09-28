@@ -196,7 +196,7 @@
 
     .toolbar{
       position:relative;
-      z-index:15;
+      z-index:120;
       height:52px;
       flex:0 0 52px;
       display:flex;
@@ -222,11 +222,11 @@
     .icon-button:hover:not(:disabled){background:var(--surface-2);color:var(--text)}
     .icon-button:disabled{opacity:.27;cursor:not-allowed}
 
-    .vpn-wrap{position:relative;flex:0 0 auto}
+    .vpn-wrap{position:relative;flex:0 0 auto;z-index:150}
     .vpn-button{height:36px;display:flex;align-items:center;gap:7px;padding:0 10px;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.035);color:var(--text);font:inherit;font-size:11px;cursor:pointer;transition:background .2s,border-color .2s,transform .2s}
     .vpn-button:hover{background:var(--surface-2);border-color:rgba(255,255,255,.16)}
     .vpn-dot{width:6px;height:6px;border-radius:50%;background:#67e8a5;box-shadow:0 0 0 3px rgba(103,232,165,.08)}
-    .vpn-menu{position:absolute;right:0;top:42px;width:220px;padding:8px;border:1px solid var(--border);border-radius:10px;background:rgba(12,12,15,.96);box-shadow:0 18px 45px rgba(0,0,0,.38);backdrop-filter:blur(24px);z-index:30}
+    .vpn-menu{position:absolute;right:0;top:42px;width:220px;padding:8px;border:1px solid var(--border);border-radius:10px;background:rgba(12,12,15,.96);box-shadow:0 18px 45px rgba(0,0,0,.38);backdrop-filter:blur(24px);z-index:220}
     .vpn-menu-row{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border-radius:7px;font-size:11px}
     .vpn-menu-row:hover{background:var(--surface-2)}
 
@@ -351,16 +351,29 @@
     .image-result img{display:block;width:100%;aspect-ratio:1.28;object-fit:cover;background:#101014}
     .image-result-copy{padding:8px}
     .image-result-copy .result-title{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;font-size:10px}
-    .settings-backdrop{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.28);backdrop-filter:blur(3px);display:flex;justify-content:flex-end}
-    .settings-panel{width:min(340px,92vw);height:100%;padding:14px;background:rgba(14,14,18,.94);border-left:1px solid var(--border-2);box-shadow:-18px 0 50px rgba(0,0,0,.35);overflow:auto}
-    .settings-header{height:36px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-    .settings-title{font-size:13px;font-weight:650}
-    .settings-section{padding:12px 0;border-top:1px solid var(--border)}
-    .settings-label{margin-bottom:8px;color:var(--muted-2);font-size:9px;text-transform:uppercase;letter-spacing:.1em}
-    .settings-options{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
-    .settings-option{height:32px;border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:10px;background:rgba(255,255,255,.02)}
-    .settings-option.active{background:var(--surface-3);color:var(--text);border-color:var(--border-2)}
-    .switch-row{width:100%;height:34px;padding:0 9px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:5px;background:rgba(255,255,255,.02);font-size:10px;color:var(--text)}
+    .settings-backdrop{position:fixed;inset:0;z-index:180;background:rgba(0,0,0,.52);backdrop-filter:blur(12px) saturate(1.08);display:grid;place-items:stretch}
+    .settings-panel{width:100%;height:100%;padding:22px 26px 28px;background:color-mix(in srgb,var(--bg) 88%,var(--surface) 12%);border:0;box-shadow:none;overflow:auto;scroll-behavior:smooth}
+    .settings-shell{width:min(1120px,100%);min-height:100%;margin:0 auto}
+    .settings-header{position:sticky;top:0;z-index:3;height:58px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+    .settings-title-wrap{display:flex;align-items:center;gap:12px}
+    .settings-title{font-size:18px;font-weight:700;letter-spacing:-.03em}
+    .settings-subtitle{color:var(--muted-2);font-size:10px}
+    .settings-close{width:34px;height:34px;border:1px solid var(--border);border-radius:8px;background:var(--surface);display:grid;place-items:center;color:var(--muted)}
+    .settings-close:hover{color:var(--text);background:var(--surface-2);border-color:var(--border-strong)}
+    .settings-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:14px;align-items:start;padding-bottom:20px}
+    .settings-card{padding:15px;border:1px solid var(--border);border-radius:12px;background:color-mix(in srgb,var(--surface) 92%,transparent);box-shadow:0 18px 70px rgba(0,0,0,.12)}
+    .settings-card + .settings-card{margin-top:14px}
+    .settings-card-title{font-size:11px;font-weight:700;margin-bottom:2px}
+    .settings-card-copy{color:var(--muted-2);font-size:9px;line-height:1.5;margin-bottom:12px}
+    .settings-section{padding:13px 0;border-top:1px solid var(--border)}
+    .settings-section:first-child{padding-top:0;border-top:0}
+    .settings-label{margin-bottom:9px;color:var(--muted-2);font-size:9px;text-transform:uppercase;letter-spacing:.1em}
+    .settings-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+    .settings-option{height:38px;border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:10px;background:rgba(255,255,255,.02);transition:background .2s var(--ease),border-color .2s var(--ease),transform .2s var(--ease)}
+    .settings-option:hover{background:var(--surface-2);border-color:var(--border-strong)}
+    .settings-option.active{background:var(--surface-3);color:var(--text);border-color:var(--border-strong);box-shadow:inset 0 0 0 1px rgba(255,255,255,.03)}
+    .switch-row{width:100%;height:42px;padding:0 11px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:7px;background:rgba(255,255,255,.02);font-size:10px;color:var(--text);transition:background .2s var(--ease),border-color .2s var(--ease)}
+    .switch-row:hover{background:var(--surface-2);border-color:var(--border-strong)}
     .switch{width:28px;height:16px;border-radius:999px;background:#2a2a30;padding:2px;transition:background .18s ease}
     .switch span{display:block;width:12px;height:12px;border-radius:50%;background:#777780;transition:transform .18s var(--ease),background .18s ease}
     .switch.on{background:#eee}
@@ -385,6 +398,25 @@
       z-index:-1!important;
       transform:translateZ(0);
     }
+
+    .theme-option{position:relative;display:flex;align-items:center;gap:8px;text-align:left;padding:0 10px}
+    .theme-swatch{width:18px;height:18px;border-radius:5px;border:1px solid rgba(255,255,255,.14);flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+    .settings-preview{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .settings-preview-box{height:92px;border:1px solid var(--border);border-radius:9px;background:var(--surface);padding:9px;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+    .settings-preview-bar{height:7px;width:55%;border-radius:999px;background:var(--border-strong)}
+    .settings-preview-line{height:5px;width:82%;border-radius:999px;background:var(--border)}
+    .settings-preview-line.short{width:58%}
+    .cursor-ring{position:fixed;left:0;top:0;width:18px;height:18px;margin:-9px 0 0 -9px;border:1px solid color-mix(in srgb,var(--text) 72%,transparent);border-radius:50%;pointer-events:none;z-index:1000;mix-blend-mode:difference;will-change:transform;box-shadow:0 0 18px rgba(255,255,255,.06)}
+    .smooth-caret{position:fixed;left:0;top:0;width:2px;height:1.1em;border-radius:999px;background:var(--text);pointer-events:none;z-index:1001;opacity:0;transform-origin:center;will-change:transform,height,opacity;box-shadow:0 0 7px color-mix(in srgb,var(--text) 22%,transparent);animation:proxus-caret-blink 1.05s steps(1,end) infinite}
+    .smooth-caret.visible{opacity:1}
+    @keyframes proxus-caret-blink{0%,48%{opacity:1}49%,100%{opacity:.12}}
+    html.proxus-custom-cursor,html.proxus-custom-cursor body,html.proxus-custom-cursor body *{cursor:none!important}
+    html.proxus-smooth-caret input:not([type="button"]):not([type="submit"]),html.proxus-smooth-caret textarea{caret-color:transparent!important}
+    body[data-theme=ash]{--bg:#0b0c0f;--surface:rgba(24,25,29,.78);--surface-2:rgba(31,32,37,.84);--surface-3:rgba(42,43,49,.9);--text:#f2f3f5;--muted:#9ca0a8;--muted-2:#686d76;--border:rgba(255,255,255,.1);--border-strong:rgba(255,255,255,.18)}
+    body[data-theme=frost]{--bg:#071018;--surface:rgba(15,27,38,.8);--surface-2:rgba(20,36,50,.86);--surface-3:rgba(26,46,63,.92);--text:#ecf7ff;--muted:#9db2c2;--muted-2:#627789;--border:rgba(192,226,255,.12);--border-strong:rgba(192,226,255,.22)}
+    body[data-theme=ocean]{--bg:#071017;--surface:rgba(9,29,39,.8);--surface-2:rgba(12,41,54,.86);--surface-3:rgba(16,56,72,.92);--text:#eafcff;--muted:#95b6bf;--muted-2:#5f7b84;--border:rgba(121,226,245,.12);--border-strong:rgba(121,226,245,.22)}
+    body[data-theme=forest]{--bg:#080f0b;--surface:rgba(15,29,21,.8);--surface-2:rgba(20,39,28,.86);--surface-3:rgba(27,53,38,.92);--text:#effcf3;--muted:#a2b9a9;--muted-2:#667d6d;--border:rgba(159,226,175,.12);--border-strong:rgba(159,226,175,.22)}
+    body[data-theme=ember]{--bg:#110a08;--surface:rgba(35,18,14,.8);--surface-2:rgba(47,24,18,.86);--surface-3:rgba(65,32,23,.92);--text:#fff3ed;--muted:#c0a49a;--muted-2:#81675d;--border:rgba(255,183,153,.13);--border-strong:rgba(255,183,153,.23)}
 
     @media(max-width:760px){
       .sidebar{position:absolute;left:0;top:0;bottom:0;transform:translateX(-100%);transition:transform .24s var(--ease);box-shadow:15px 0 50px rgba(0,0,0,.35)}
@@ -511,6 +543,82 @@
     },[]);
 
     return h("canvas",{ref,className:"dust","aria-hidden":"true"});
+  }
+
+  function CustomCursor({enabled}){
+    const ref=useRef(null);
+    const x=useMotionValue(-40);
+    const y=useMotionValue(-40);
+    const sx=useSpring(x,{stiffness:760,damping:42,mass:.18});
+    const sy=useSpring(y,{stiffness:760,damping:42,mass:.18});
+    useEffect(()=>{
+      if(!enabled)return;
+      const move=e=>{x.set(e.clientX);y.set(e.clientY)};
+      addEventListener('pointermove',move,{passive:true});
+      const leave=()=>{if(ref.current)ref.current.style.opacity='0'};
+      const enter=()=>{if(ref.current)ref.current.style.opacity='1'};
+      addEventListener('pointerleave',leave);
+      addEventListener('pointerenter',enter);
+      return()=>{removeEventListener('pointermove',move);removeEventListener('pointerleave',leave);removeEventListener('pointerenter',enter)};
+    },[enabled]);
+    useEffect(()=>{
+      if(!enabled)return;
+      const paint=()=>{if(ref.current)ref.current.style.transform=`translate3d(${sx.get()-9}px,${sy.get()-9}px,0)`};
+      paint();
+      const a=sx.on('change',paint),b=sy.on('change',paint);
+      return()=>{a();b()};
+    },[enabled,sx,sy]);
+    if(!enabled)return null;
+    return h('div',{ref,className:'cursor-ring','aria-hidden':'true'});
+  }
+
+  function SmoothCaret({enabled}){
+    const ref=useRef(null);
+    const tx=useMotionValue(-30),ty=useMotionValue(-30),th=useMotionValue(20);
+    const x=useSpring(tx,{stiffness:520,damping:32,mass:.2});
+    const y=useSpring(ty,{stiffness:520,damping:32,mass:.2});
+    const hgt=useSpring(th,{stiffness:700,damping:40,mass:.16});
+    useEffect(()=>{
+      if(!enabled)return;
+      const el=ref.current;
+      const canvas=document.createElement('canvas');
+      const ctx=canvas.getContext('2d');
+      let raf=0,lastKey='',hidden=true;
+      const locate=()=>{
+        const target=document.activeElement;
+        const valid=target instanceof HTMLInputElement||target instanceof HTMLTextAreaElement;
+        if(!valid||target.readOnly||target.disabled||target.type==='button'||target.type==='submit'){
+          if(!hidden){el?.classList.remove('visible');hidden=true}
+          lastKey='';
+          return;
+        }
+        const cs=getComputedStyle(target);
+        ctx.font=[cs.fontStyle,cs.fontVariant,cs.fontWeight,cs.fontSize,cs.fontFamily].join(' ');
+        const value=target.value||'';
+        const pos=typeof target.selectionStart==='number'?target.selectionStart:value.length;
+        const width=ctx.measureText(value.slice(0,pos)).width;
+        const rect=target.getBoundingClientRect();
+        const pl=parseFloat(cs.paddingLeft)||0,bl=parseFloat(cs.borderLeftWidth)||0,fs=parseFloat(cs.fontSize)||13;
+        const lineH=Math.max(12,Math.min(rect.height-6,fs*1.2));
+        const cx=rect.left+bl+pl+width-target.scrollLeft;
+        const cy=rect.top+(rect.height-lineH)/2;
+        const onScreen=cx>=rect.left&&cx<=rect.right&&rect.width>0&&rect.height>0;
+        if(!onScreen){el?.classList.remove('visible');hidden=true;return}
+        const key=`${Math.round(cx)}:${Math.round(cy)}:${Math.round(lineH)}:${target.tagName}:${pos}`;
+        if(key!==lastKey){lastKey=key;tx.set(cx);ty.set(cy);th.set(lineH)}
+        if(hidden){el?.classList.add('visible');hidden=false}
+      };
+      const events=['focusin','focusout','input','keyup','keydown','mouseup','pointerup','select','scroll'];
+      events.forEach(e=>document.addEventListener(e,locate,true));
+      const loop=()=>{locate();raf=requestAnimationFrame(loop)};
+      raf=requestAnimationFrame(loop);
+      const paint=()=>{if(!el)return;el.style.transform=`translate3d(${x.get()}px,${y.get()}px,0)`;el.style.height=`${hgt.get()}px`};
+      paint();
+      const a=x.on('change',paint),b=y.on('change',paint),c=hgt.on('change',paint);
+      return()=>{cancelAnimationFrame(raf);events.forEach(e=>document.removeEventListener(e,locate,true));a();b();c();el?.classList.remove('visible')};
+    },[enabled,x,y,hgt,tx,ty,th]);
+    if(!enabled)return null;
+    return h('div',{ref,className:'smooth-caret','aria-hidden':'true'});
   }
 
   function useStorage(key,fallback){
@@ -778,11 +886,14 @@
           if(!absolute || !/^https?:\/\//i.test(absolute))return;
           const key=attr.replace(/[^a-z0-9]+/gi,'-');
           const rel=(node.getAttribute('rel')||'').toLowerCase();
-          const imageLike=(selector==='img'||selector==='source'||selector==='image' || (selector==='video' && attr==='poster'));
-          const shouldProxy=!imageLike && (selector!=="link" || /(?:stylesheet|preload|modulepreload|icon|manifest|apple-touch-icon|mask-icon|dns-prefetch|preconnect)/i.test(rel));
+          const imageLike=(selector==='img'||selector==='image' || (selector==='video' && attr==='poster'));
+          const mediaLike=(selector==='source'||selector==='audio'||selector==='track'||selector==='object'||selector==='embed');
+          const resourceLike=imageLike||mediaLike||selector==='iframe';
+          const shouldProxy=resourceLike || (selector==="link" && /(?:stylesheet|preload|modulepreload|icon|manifest|apple-touch-icon|mask-icon|dns-prefetch|preconnect)/i.test(rel)) || selector==='script';
           node.setAttribute('data-proxus-original-'+key,absolute);
           node.setAttribute('data-proxus-relay-'+key,proxyAsset(absolute));
-          node.setAttribute(attr,shouldProxy ? proxyAsset(absolute) : absolute);
+          const directFirst=imageLike || selector==='source' || (selector==='video' && attr==='poster');
+          node.setAttribute(attr,directFirst ? absolute : (shouldProxy ? proxyAsset(absolute) : absolute));
         });
       }
 
@@ -823,7 +934,7 @@
       const rewriteCssUrls=(css,base)=>String(css||"").replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/gi,(full,quote,target)=>{
         if(isSpecialUrl(target)||isProxyUrl(target))return full;
         const absolute=resolveNavigation(target,base);
-        return absolute && /^https?:\/\//i.test(absolute) ? `url("${absolute}")` : full;
+        return absolute && /^https?:\/\//i.test(absolute) ? `url("${proxyAsset(absolute)}")` : full;
       });
 
       doc.querySelectorAll('style').forEach(style=>style.textContent=rewriteCssUrls(style.textContent,pageUrl));
@@ -850,43 +961,76 @@
           el.setAttribute('data-proxus-tried-fallback','1');
           if(original) el.setAttribute(attr,original); else if(relay) el.setAttribute(attr,relay);
         };
-        document.querySelectorAll('*').forEach(el=>{
-          for(const attr of ['src','href','data-src','data-lazy-src','data-original','data-url','poster','data','formaction']){
-            if(el.hasAttribute('data-proxus-relay-'+attr.replace(/[^a-z0-9]+/gi,'-'))){
-              el.addEventListener('error',()=>__retryAttr(el,attr),true);
+        const __prepareAsset=(el)=>{
+          if(!el || el.nodeType!==1)return;
+          for(const attr of ['src','poster','data','data-src','data-lazy-src','data-original','data-url']){
+            const raw=el.getAttribute(attr);
+            if(!raw || /^(?:data:|blob:|javascript:|about:)/i.test(raw))continue;
+            const key=attr.replace(/[^a-z0-9]+/gi,'-');
+            let abs=''; try{abs=__page(raw)}catch{}
+            if(!/^https?:\/\//i.test(abs))continue;
+            if(!el.getAttribute('data-proxus-original-'+key))el.setAttribute('data-proxus-original-'+key,abs);
+            if(!el.getAttribute('data-proxus-relay-'+key))el.setAttribute('data-proxus-relay-'+key,__asset(abs));
+            const tag=String(el.tagName||'').toLowerCase();
+            if((tag==='img'||tag==='source'||(tag==='video'&&attr==='poster')) && raw!==abs)el.setAttribute(attr,abs);
+            const original=el.getAttribute('data-proxus-original-'+key);
+            const relay=el.getAttribute('data-proxus-relay-'+key);
+            if(original && relay && el.getAttribute('data-proxus-hook-'+key)!=='1'){
+              el.setAttribute('data-proxus-hook-'+key,'1');
+              el.addEventListener('error',()=>{
+                if(el.getAttribute('data-proxus-used-relay-'+key)==='1')return;
+                el.setAttribute('data-proxus-used-relay-'+key,'1');
+                el.setAttribute(attr,relay);
+              },true);
             }
           }
-          const lazy=el.getAttribute('data-proxus-lazy-bg');
-          const originalBg=el.getAttribute('data-proxus-original-bg');
-          if(originalBg){
-            el.style.backgroundImage='url("'+originalBg.replace(/"/g,'\\"')+'")';
-            el.addEventListener('error',()=>{el.style.backgroundImage='url("'+lazy.replace(/"/g,'\\"')+'")'},true);
+          const srcsetAttr=el.hasAttribute('srcset')?'srcset':(el.hasAttribute('data-srcset')?'data-srcset':(el.hasAttribute('imagesrcset')?'imagesrcset':null));
+          if(srcsetAttr){
+            const rawSet=el.getAttribute(srcsetAttr)||'';
+            const directSet=rawSet.split(',').map(part=>{
+              const bits=part.trim().split(/\s+/); if(!bits[0])return '';
+              try{const abs=__page(bits[0]); if(!/^https?:\/\//i.test(abs))return part.trim(); bits[0]=abs; return bits.join(' ')}catch{return part.trim()}
+            }).filter(Boolean).join(', ');
+            const relaySet=directSet.split(',').map(part=>{
+              const bits=part.trim().split(/\s+/); if(!bits[0])return '';
+              return [__asset(bits[0]),...bits.slice(1)].join(' ');
+            }).filter(Boolean).join(', ');
+            el.setAttribute(srcsetAttr,directSet);
+            el.setAttribute('data-proxus-relay-srcset',relaySet);
+            if(el.getAttribute('data-proxus-srcset-hook')!=='1'){
+              el.setAttribute('data-proxus-srcset-hook','1');
+              el.addEventListener('error',()=>{
+                if(el.getAttribute('data-proxus-used-relay-srcset')==='1')return;
+                el.setAttribute('data-proxus-used-relay-srcset','1');
+                el.setAttribute(srcsetAttr,relaySet);
+              },true);
+            }
+          }
+        };
+
+        document.querySelectorAll('img,source,video,object,embed').forEach(__prepareAsset);
+        const __assetObserver=new MutationObserver(records=>{
+          for(const r of records){
+            if(r.type==='attributes')__prepareAsset(r.target);
+            for(const n of r.addedNodes||[]){
+              if(n.nodeType!==1)continue;
+              __prepareAsset(n);
+              n.querySelectorAll?.('img,source,video,object,embed').forEach(__prepareAsset);
+            }
           }
         });
-        document.querySelectorAll('[data-proxus-relay-srcset]').forEach(el=>{
-          el.addEventListener('error',()=>{
-            if(el.getAttribute('data-proxus-tried-relay')==='1')return;
-            el.setAttribute('data-proxus-tried-relay','1');
-            el.setAttribute(el.hasAttribute('data-srcset')?'data-srcset':(el.hasAttribute('imagesrcset')?'imagesrcset':'srcset'),el.getAttribute('data-proxus-relay-srcset')||'');
-          },true);
-        });
+        try{__assetObserver.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['src','srcset','poster','data-src','data-srcset','data-lazy-src','data-original','data-url']});}catch{}
 
-        // Validate CSS/background image URLs without requiring CORS access.
-        // If the absolute asset cannot load, switch just that element to the relay.
-        document.querySelectorAll('[style]').forEach(el=>{
+        const __testBackgrounds=()=>document.querySelectorAll('[style]').forEach(el=>{
           const style=el.getAttribute('style')||'';
-          const urls=[...style.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/gi)].map(m=>m[1]);
-          urls.forEach(original=>{
-            if(!/^https?:\/\//i.test(original))return;
+          for(const match of style.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/gi)){
+            const original=match[1]; if(!/^https?:\/\//i.test(original))continue;
             const test=new Image();
-            test.onerror=()=>{
-              const relay=__asset(original);
-              const current=el.getAttribute('style')||'';
-              el.setAttribute('style',current.split(original).join(relay));
-            };
+            test.onerror=()=>{const relay=__asset(original); const cur=el.getAttribute('style')||''; el.setAttribute('style',cur.split(original).join(relay));};
             test.src=original;
-          });
+          }
         });
+        __testBackgrounds();
 
         // Route site network traffic through the relay first. This keeps API
         // calls, images, modules, and POST bodies in the same proxied origin.
@@ -939,16 +1083,30 @@
           };
         }catch{}
 
+        try{
+          const __push=history.pushState.bind(history);
+          history.pushState=function(state,title,url){
+            __push(state,title,url);
+            if(url)parent.postMessage({type:'360-navigate',url:__page(url)},'*');
+          };
+          const __replace=history.replaceState.bind(history);
+          history.replaceState=function(state,title,url){
+            __replace(state,title,url);
+            if(url)parent.postMessage({type:'360-navigate',url:__page(url)},'*');
+          };
+          window.addEventListener('popstate',()=>parent.postMessage({type:'360-navigate',url:__page(location.href)},'*'));
+        }catch{}
+
         // Forms and normal links are sent back through the outer viewer so they
         // can be fetched against the real origin URL, never about:srcdoc.
         document.addEventListener('click',e=>{
           const a=e.target?.closest?.('a[href]'); if(!a)return;
           const raw=a.getAttribute('href'); if(!raw || /^(?:#|javascript:|mailto:|tel:|data:|blob:)/i.test(raw))return;
-          try{const u=new URL(raw,__PROXUS_PAGE); if(__http(u.href)){e.preventDefault();e.stopPropagation();parent.postMessage({type:'PROXUS_NAVIGATE',url:u.href},'*');}}catch{}
+          try{const u=new URL(raw,__PROXUS_PAGE); if(__http(u.href)){e.preventDefault();e.stopPropagation();parent.postMessage({type:'360-navigate',url:u.href},'*');}}catch{}
         },true);
         document.addEventListener('submit',e=>{
           const form=e.target; if(!form?.action)return;
-          try{const u=new URL(form.action,__PROXUS_PAGE); if(__http(u.href) && String(form.method||'get').toLowerCase()==='get'){e.preventDefault();e.stopPropagation();parent.postMessage({type:'PROXUS_NAVIGATE',url:u.href},'*');}}catch{}
+          try{const u=new URL(form.action,__PROXUS_PAGE); if(__http(u.href) && String(form.method||'get').toLowerCase()==='get'){e.preventDefault();e.stopPropagation();parent.postMessage({type:'360-navigate',url:u.href},'*');}}catch{}
         },true);
       })();`;
       doc.head ? doc.head.prepend(bridge) : doc.documentElement.prepend(bridge);
@@ -1007,12 +1165,28 @@
     const [safeSearch,setSafeSearch]=useState(true);
     const [dustEnabled,setDustEnabled]=useState(true);
     const [settingsOpen,setSettingsOpen]=useState(false);
+    const [theme,setTheme]=useStorage("proxus-theme","obsidian");
+    const [customCursor,setCustomCursor]=useStorage("proxus-custom-cursor",false);
+    const [smoothCaret,setSmoothCaret]=useStorage("proxus-smooth-caret",true);
     const [suggestions,setSuggestions]=useState([]);
     const [suggestionIndex,setSuggestionIndex]=useState(-1);
     const [toast,setToast]=useState(null);
     const [vpnOpen,setVpnOpen]=useState(false);
     const frameRef=useRef(null);
     const suggestTimer=useRef(null);
+
+    useEffect(()=>{
+      document.body.dataset.theme=theme||"obsidian";
+      return()=>{delete document.body.dataset.theme};
+    },[theme]);
+
+    useEffect(()=>{
+      document.documentElement.classList.toggle("proxus-custom-cursor",!!customCursor);
+      document.documentElement.classList.toggle("proxus-smooth-caret",!!smoothCaret);
+      return()=>{
+        document.documentElement.classList.remove("proxus-custom-cursor","proxus-smooth-caret");
+      };
+    },[customCursor,smoothCaret]);
 
     const activeTab=useMemo(()=>tabs.find(t=>t.id===activeId)||tabs[0],[tabs,activeId]);
     const currentTab=()=>activeTab;
@@ -1030,6 +1204,13 @@
 
     const updateTab=(url,title,targetTabId=activeId)=>{
       setTabs(prev=>prev.map(t=>t.id===targetTabId?{...t,url,title:title||t.title||"New Tab"}:t));
+    };
+
+    const applyFrameCursor=(html)=>{
+      if(!html)return html;
+      const marker="<style id=\"__proxus_cursor__\">";
+      const css=`${marker}${customCursor?"html,body,html *,body *{cursor:none!important}":""}</style>`;
+      return html.replace(/<style id=\"__proxus_cursor__\">[\s\S]*?<\/style>/i,"").replace(/<\/head>/i,css+"</head>");
     };
 
     const showHome=(targetTabId=activeId)=>{
@@ -1068,13 +1249,17 @@
         try{title=(new URL(finalUrl)).hostname}catch{}
         updateTab(finalUrl,title,targetTabId);
         setShowResults(false);
-        setFrameHtml(html);
+        setFrameHtml(applyFrameCursor(html));
       }catch(err){
         showToast("Could not load page",err.message);
       }finally{
         setLoading(false);
       }
     };
+
+    useEffect(()=>{
+      if(rawHtml && currentUrl)setFrameHtml(applyFrameCursor(rawHtml));
+    },[customCursor]);
 
     const navigate=(value)=>{
       const raw=String(value||"").trim();
@@ -1259,20 +1444,12 @@
       };
       addEventListener("message",onMessage);
       return()=>removeEventListener("message",onMessage);
-    },[activeId,activeTab?.title]);
+    },[activeId,activeTab?.title,currentUrl]);
 
     useEffect(()=>{
       const frame=frameRef.current;
       if(!frame)return;
 
-      const onMessage=(event)=>{
-        if(event.source!==frame.contentWindow)return;
-        if(event.data?.type==='PROXUS_NAVIGATE' && typeof event.data.url==='string'){
-          const tab=currentTab();
-          if(tab) fetchPage(event.data.url,'get',true,tab.id);
-        }
-      };
-      window.addEventListener('message',onMessage);
 
       const onLoad=()=>{
         try{
@@ -1661,57 +1838,123 @@
         sourceMode && h("pre",{className:"source",style:{display:"block"}},rawHtml)
       );
 
+    const themeOptions=[
+      ["obsidian","Obsidian","#050505"],
+      ["ash","Ash","#1a1b20"],
+      ["frost","Frost","#12212c"],
+      ["ocean","Ocean","#0d3947"],
+      ["forest","Forest","#173b29"],
+      ["ember","Ember","#432317"]
+    ];
+
     const settingsNode = settingsOpen && h(
       motion.div,
-      {className:"settings-backdrop",initial:{opacity:0},animate:{opacity:1},exit:{opacity:0},onClick:()=>setSettingsOpen(false)},
-      h(motion.aside,{className:"settings-panel",initial:{x:28,opacity:0},animate:{x:0,opacity:1},exit:{x:20,opacity:0},transition:{type:"spring",stiffness:320,damping:30},onClick:e=>e.stopPropagation()},
-        h("div",{className:"settings-header"},
-          h("div",{className:"settings-title"},"Settings"),
-          h(motion.button,{className:"icon-button",onClick:()=>setSettingsOpen(false),whileTap:{scale:.9}},h(Icon,{name:"close",size:15}))
-        ),
-        h("div",{className:"settings-section"},
-          h("div",{className:"settings-label"},"Search type"),
-          h("div",{className:"settings-options"},
-            [["web","Web"],["news","News"],["shopping","Shopping"],["image","Images"]].map(([type,label])=>
-              h(motion.button,{key:type,className:"settings-option"+(searchType===type?" active":""),onClick:()=>setSearchType(type),whileTap:{scale:.97}},label)
+      {className:"settings-backdrop",initial:{opacity:0},animate:{opacity:1},exit:{opacity:0}},
+      h(motion.aside,{className:"settings-panel",initial:{y:18,opacity:0,scale:.995},animate:{y:0,opacity:1,scale:1},transition:{type:"spring",stiffness:260,damping:28}},
+        h("div",{className:"settings-shell"},
+          h("div",{className:"settings-header"},
+            h("div",{className:"settings-title-wrap"},
+              h("div",{className:"settings-title"},"Settings"),
+              h("div",{className:"settings-subtitle"},"PROXUS workspace")
+            ),
+            h(motion.button,{className:"settings-close",onClick:()=>setSettingsOpen(false),whileTap:{scale:.9}},h(Icon,{name:"close",size:16}))
+          ),
+          h("div",{className:"settings-grid"},
+            h("div",null,
+              h("div",{className:"settings-card"},
+                h("div",{className:"settings-card-title"},"Appearance"),
+                h("div",{className:"settings-card-copy"},"Choose the look and motion style of the workspace."),
+                h("div",{className:"settings-section"},
+                  h("div",{className:"settings-label"},"Theme"),
+                  h("div",{className:"settings-options"},themeOptions.map(([id,label,swatch])=>
+                    h(motion.button,{key:id,className:"settings-option theme-option"+(theme===id?" active":""),onClick:()=>setTheme(id),whileTap:{scale:.97}},
+                      h("span",{className:"theme-swatch",style:{background:swatch}}),label
+                    )
+                  ))
+                ),
+                h("div",{className:"settings-section"},
+                  h("div",{className:"settings-label"},"Background"),
+                  h(motion.button,{className:"switch-row",onClick:()=>setDustEnabled(v=>!v),whileTap:{scale:.985}},
+                    h("span",null,"Falling dust"),
+                    h("span",{className:"switch"+(dustEnabled?" on":"")},h("span",null))
+                  )
+                ),
+                h("div",{className:"settings-preview"},
+                  h("div",{className:"settings-preview-box"},h("div",{className:"settings-preview-bar"}),h("div",{className:"settings-preview-line"}),h("div",{className:"settings-preview-line short"})),
+                  h("div",{className:"settings-preview-box"},h("div",{className:"settings-preview-line"}),h("div",{className:"settings-preview-bar"}),h("div",{className:"settings-preview-line short"}))
+                )
+              ),
+              h("div",{className:"settings-card"},
+                h("div",{className:"settings-card-title"},"Search"),
+                h("div",{className:"settings-card-copy"},"Control how results are presented and filtered."),
+                h("div",{className:"settings-section"},
+                  h("div",{className:"settings-label"},"Default result type"),
+                  h("div",{className:"settings-options"},[["web","Web"],["news","News"],["shopping","Shopping"],["image","Images"]].map(([type,label])=>
+                    h(motion.button,{key:type,className:"settings-option"+(searchType===type?" active":""),onClick:()=>setSearchType(type),whileTap:{scale:.97}},label)
+                  ))
+                ),
+                h("div",{className:"settings-section"},
+                  h("div",{className:"settings-label"},"Safety"),
+                  h(motion.button,{className:"switch-row",onClick:()=>setSafeSearch(v=>!v),whileTap:{scale:.985}},
+                    h("span",null,safeSearch?"Moderate safe search":"Safe search off"),
+                    h("span",{className:"switch"+(safeSearch?" on":"")},h("span",null))
+                  )
+                )
+              )
+            ),
+            h("div",null,
+              h("div",{className:"settings-card"},
+                h("div",{className:"settings-card-title"},"Pointer & typing"),
+                h("div",{className:"settings-card-copy"},"Optional motion for the pointer and a smoother text caret."),
+                h("div",{className:"settings-section"},
+                  h("div",{className:"settings-label"},"Pointer"),
+                  h(motion.button,{className:"switch-row",onClick:()=>setCustomCursor(v=>!v),whileTap:{scale:.985}},
+                    h("span",null,"Custom ring cursor"),
+                    h("span",{className:"switch"+(customCursor?" on":"")},h("span",null))
+                  )
+                ),
+                h("div",{className:"settings-section"},
+                  h("div",{className:"settings-label"},"Typing"),
+                  h(motion.button,{className:"switch-row",onClick:()=>setSmoothCaret(v=>!v),whileTap:{scale:.985}},
+                    h("span",null,"Smooth typing caret"),
+                    h("span",{className:"switch"+(smoothCaret?" on":"")},h("span",null))
+                  )
+                )
+              ),
+              h("div",{className:"settings-card"},
+                h("div",{className:"settings-card-title"},"Bookmarks"),
+                h("div",{className:"settings-card-copy"},"Saved pages stay available here for quick access."),
+                h("div",{className:"settings-section"},
+                  bookmarks.length
+                    ? h("div",{className:"bookmark-list"},bookmarks.map(bookmark=>
+                        h(motion.button,{key:bookmark.url,className:"bookmark-list-item",onClick:()=>{setSettingsOpen(false);fetchPage(bookmark.url)}},
+                          h("span",null,bookmark.title||bookmark.url),h(Icon,{name:"external",size:12})
+                        )
+                      ))
+                    : h("div",{className:"settings-muted"},"No saved bookmarks")
+                )
+              ),
+              h("div",{className:"settings-card"},
+                h("div",{className:"settings-card-title"},"Privacy"),
+                h("div",{className:"settings-card-copy"},"PROXUS is not intended for bypassing access restrictions."),
+                h("div",{className:"settings-section"},
+                  h("div",{className:"settings-muted"},"The private route control applies to the PROXUS web view rather than changing your device network.")
+                )
+              )
             )
           )
-        ),
-        h("div",{className:"settings-section"},
-          h("div",{className:"settings-label"},"Safe search"),
-          h(motion.button,{className:"switch-row",onClick:()=>setSafeSearch(v=>!v),whileTap:{scale:.985}},
-            h("span",null,safeSearch?"Moderate":"Off"),
-            h("span",{className:"switch"+(safeSearch?" on":"")},h("span",null))
-          )
-        ),
-        h("div",{className:"settings-section"},
-          h("div",{className:"settings-label"},"Background"),
-          h(motion.button,{className:"switch-row",onClick:()=>setDustEnabled(v=>!v),whileTap:{scale:.985}},
-            h("span",null,"Falling dust"),
-            h("span",{className:"switch"+(dustEnabled?" on":"")},h("span",null))
-          )
-        ),
-        h("div",{className:"settings-section"},
-          h("div",{className:"settings-label"},"Bookmarks"),
-          bookmarks.length
-            ? h("div",{className:"bookmark-list"},bookmarks.map(bookmark=>
-                h(motion.button,{key:bookmark.url,className:"bookmark-list-item",onClick:()=>{setSettingsOpen(false);fetchPage(bookmark.url)}},
-                  h("span",null,bookmark.title||bookmark.url),
-                  h(Icon,{name:"external",size:12})
-                )
-              ))
-            : h("div",{className:"settings-muted"},"No saved bookmarks")
-        ),
-        h("div",{className:"settings-section settings-note"},
-          "PROXUS is not intended to bypass access restrictions."
         )
       )
     );
 
+
     const appNode = h(
       "div",
-      {className:"app"},
+      {className:"app"+(customCursor?" cursor-ring-enabled":""),
+      },
       dustEnabled && h(Dust),
+      h(CustomCursor,{enabled:customCursor}),
+      h(SmoothCaret,{enabled:smoothCaret}),
       h("div",{className:"shell"},
         sidebarNode,
         h("main",{className:"main"},
