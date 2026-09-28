@@ -3,3 +3,143 @@ I guess you could say I forked some obfuscated React code from Lucide and rewrot
 
 
 it's like I'm adhd with the random side projects (no offense to the adhd community, 💙 you guys) should I get tested 😭(like actually, not as a joke)
+
+
+_______________________________________________
+# PROXUS
+
+PROXUS is a custom web-viewing and search workspace built by modifying Lucide's original source and then combining it with my own web-development work and experience from the 360 project.
+
+It is not a completely original implementation from scratch. The project started from Lucide's source structure and visual direction, then I changed, extended, and rebuilt large parts of the behavior, interface, proxy/viewer flow, search experience, settings, animations, and Electron packaging.
+
+## What PROXUS is
+
+PROXUS is a browser-style web workspace with a custom interface around a proxied web viewer. It includes search, tabs, bookmarks, a web-viewing surface, custom navigation behavior, themes, cursor/caret settings, and an Electron desktop build.
+
+The project also contains work influenced by the techniques and patterns I developed while working on 360, especially around frontend web development, proxy/web-viewer behavior, search UI, JavaScript integration, and desktop packaging.
+
+### Setup
+
+## Requirements
+
+Node.js 24 or newer
+
+npm
+
+Git
+
+Electron is installed through the project's npm dependencies
+
+Clone the repository
+
+git clone https://github.com/YOUR-ACCOUNT/PROXUS.git
+cd PROXUS
+
+Replace the repository URL with the actual PROXUS repository URL.
+
+Install dependencies
+
+npm install --legacy-peer-deps
+
+Start PROXUS locally
+
+npm start
+
+This launches the Electron desktop application and loads the local index.html through the Electron shell.
+
+Build the desktop app
+
+Build for the current platform with:
+
+npm run build
+
+The packaged application is written to the dist/ directory.
+
+Platform-specific scripts are also available:
+
+npm run build:win
+npm run build:linux
+npm run build:mac
+
+The exact output format depends on the target configured in package.json and electron-builder.
+
+Project structure
+
+PROXUS/
+├── index.html
+├── package.json
+├── assets/
+│   └── proxus.svg
+├── electron/
+│   ├── main.js
+│   └── preload.js
+└── .github/
+    └── workflows/
+        ├── build-windows.yml
+        ├── build-linux.yml
+        └── build-macos.yml
+
+index.html
+
+The main PROXUS application. The UI, search surface, web viewer, settings, themes, cursor behavior, animations, and client-side logic live here.
+
+electron/main.js
+
+Creates the native Electron window, loads the local application, removes the default Electron application menu, hides scrollbars, and handles desktop window behavior.
+
+electron/preload.js
+
+Provides the isolated Electron bridge used by the renderer. Node integration is disabled in the page itself.
+
+assets/proxus.svg
+
+The application logo and favicon asset.
+
+Use it from the root index.html with:
+
+<link rel="icon" href="./assets/proxus.svg" type="image/svg+xml">
+
+GitHub Actions
+
+The repository includes separate workflows for Windows, Linux, and macOS builds.
+
+They install the Node dependencies, run the Electron build, and upload the generated desktop artifacts. The workflows can also be used for tagged releases depending on the event configuration in each YAML file.
+
+For local development, GitHub Actions is not required. npm start is enough to run PROXUS on a development machine.
+
+How the project came together
+
+PROXUS is basically a combination of two parts:
+
+Lucide source — the starting point for the original structure, interface ideas, and base project being modified.
+
+My own 360/web-development work — the implementation knowledge and techniques I brought in from building 360, including frontend architecture, web-viewer behavior, search interfaces, proxy-related client logic, animations, interaction design, and Electron packaging.
+
+The result is a heavily modified project rather than a fresh implementation written from zero.
+
+Development
+
+A typical development cycle is:
+
+npm install --legacy-peer-deps
+npm start
+
+Make changes to index.html or the Electron files, then restart Electron as needed.
+
+For a production build:
+
+npm run build
+
+Keep package.json and the lockfile in sync when dependencies are changed.
+
+Privacy and networking
+
+PROXUS is designed around its web-viewing/proxy architecture rather than simply opening arbitrary pages in the system browser. The desktop Electron shell provides the application window; the web-viewing behavior remains part of the PROXUS application itself.
+
+A PROXUS location selector should not be treated as proof that the computer's system-wide network connection has changed. Geographic routing, when implemented, belongs to the upstream web-viewer/proxy layer.
+
+Credits and origins
+
+PROXUS began as a modification of Lucide's source code and was extended with my own work from the 360 web-development project.
+
+Respect the licenses and notices of the upstream Lucide project and any other third-party code or services used by PROXUS.
